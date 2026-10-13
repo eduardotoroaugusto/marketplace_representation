@@ -44,6 +44,16 @@ class NotificationView {
     state.notifications.forEach(n => this.listEl.appendChild(this.createRow(n)));
   }
 
+  // Ícone equivalente do layout mobile para cada tipo de notificação
+  mobileIcon(icon) {
+    return { 'package': 'notif-bag', 'tag': 'notif-info', 'alert-triangle': 'notif-bell' }[icon] || 'notif-bell';
+  }
+
+  maskStyle(name) {
+    const url = `url(assets/icons/${name}.svg)`;
+    return `-webkit-mask-image: ${url}; mask-image: ${url}`;
+  }
+
   createRow(n) {
     const row = document.createElement('div');
     row.className = `notif-row ${n.read ? 'read' : 'unread'}`;
@@ -51,7 +61,8 @@ class NotificationView {
 
     row.innerHTML = `
       <div class="notif-icon">
-        <img src="assets/icons/${n.icon}.svg" alt="" class="icon-16">
+        <img src="assets/icons/${n.icon}.svg" alt="" class="icon-16 only-desktop">
+        <span class="mask-icon icon-18 only-mobile" style="${this.maskStyle(this.mobileIcon(n.icon))}"></span>
       </div>
       <div class="notif-text">
         <p class="notif-title">${n.title}</p>
@@ -60,7 +71,8 @@ class NotificationView {
       <div class="notif-actions">
         ${n.read ? '' : '<span class="unread-dot" aria-label="Não lida"></span>'}
         <button type="button" class="notif-delete" aria-label="Remover notificação">
-          <img src="assets/icons/trash.svg" alt="" class="icon-14">
+          <img src="assets/icons/trash.svg" alt="" class="icon-14 only-desktop">
+          <span class="mask-icon icon-14 only-mobile" style="-webkit-mask-image: url(assets/icons/x-circle.svg); mask-image: url(assets/icons/x-circle.svg)"></span>
         </button>
       </div>
     `;

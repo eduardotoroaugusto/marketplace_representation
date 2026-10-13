@@ -55,6 +55,12 @@
     </div>
   </header>
 
+  <!-- Barra superior (só no layout mobile) -->
+  <header class="m-topbar only-mobile">
+    <h1 class="m-title">Notificações</h1>
+    <button type="button" class="m-link" id="mark-all-read-mobile">Lidas</button>
+  </header>
+
   <!-- Corpo -->
   <main class="notif-body">
     <div class="inbox-container">
@@ -69,8 +75,37 @@
       <div class="notif-card" id="notif-list">
         <!-- Notificações injetadas pela NotificationView -->
       </div>
+
+      <p class="swipe-hint only-mobile">
+        <span class="mask-icon icon-14" style="-webkit-mask-image: url(assets/icons/chevron-right.svg); mask-image: url(assets/icons/chevron-right.svg)"></span>
+        Arraste uma notificação para o lado para excluir
+      </p>
     </div>
   </main>
+
+  <!-- Navegação inferior (só no layout mobile) -->
+  <nav class="bottom-nav" aria-label="Navegação principal">
+    <a href="catalogo.html" class="bottom-tab">
+      <span class="mask-icon icon-20" style="-webkit-mask-image: url(assets/icons/nav-home.svg); mask-image: url(assets/icons/nav-home.svg)"></span>
+      <span>Home</span>
+    </a>
+    <a href="compras.html" class="bottom-tab">
+      <span class="mask-icon icon-20" style="-webkit-mask-image: url(assets/icons/nav-bag.svg); mask-image: url(assets/icons/nav-bag.svg)"></span>
+      <span>Compras</span>
+    </a>
+    <a href="jogos.html" class="bottom-tab">
+      <span class="mask-icon icon-20" style="-webkit-mask-image: url(assets/icons/nav-gamepad.svg); mask-image: url(assets/icons/nav-gamepad.svg)"></span>
+      <span>Jogos</span>
+    </a>
+    <a href="notificacoes.html" class="bottom-tab active" aria-current="page">
+      <span class="mask-icon icon-20" style="-webkit-mask-image: url(assets/icons/nav-bell.svg); mask-image: url(assets/icons/nav-bell.svg)"></span>
+      <span>Notificações</span>
+    </a>
+    <a href="perfil.html" class="bottom-tab">
+      <span class="mask-icon icon-20" style="-webkit-mask-image: url(assets/icons/nav-user.svg); mask-image: url(assets/icons/nav-user.svg)"></span>
+      <span>Perfil</span>
+    </a>
+  </nav>
 
   <!-- Scripts -->
   <script src="js/core/observable.js"></script>

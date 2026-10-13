@@ -67,7 +67,8 @@ class CartPageView {
       </div>
       <p class="cart-item-total">R$ ${this.formatPrice(item.subtotal)}</p>
       <button type="button" class="cart-remove" aria-label="Remover item">
-        <img src="assets/icons/x.svg" alt="" class="icon-18">
+        <img src="assets/icons/x.svg" alt="" class="icon-18 only-desktop">
+        <span class="mask-icon icon-18 only-mobile" style="-webkit-mask-image: url(assets/icons/x-circle.svg); mask-image: url(assets/icons/x-circle.svg)"></span>
       </button>
     `;
 

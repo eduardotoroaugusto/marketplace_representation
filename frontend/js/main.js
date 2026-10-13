@@ -20,6 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
     cartView.init();
 
     fillUserHeader();
+    fillNotifBadge();
     catalogViewModel.loadProducts();
   }
 
@@ -90,16 +91,30 @@ function fillDeliveryAddress() {
   }
 }
 
+// Contador de notificações não lidas no sino do cabeçalho mobile
+async function fillNotifBadge() {
+  const badges = document.querySelectorAll('[data-notif-count]');
+  if (badges.length === 0) return;
+  const res = await ApiService.getNotifications();
+  const unread = res.ok ? res.data.filter(n => !n.read).length : 0;
+  badges.forEach(el => {
+    el.textContent = unread;
+    el.classList.toggle('hidden', unread === 0);
+  });
+}
+
 // Preenche o nome e as iniciais do usuário logado no cabeçalho
 function fillUserHeader() {
   const nome = (localStorage.getItem('authUser') || '').trim();
   const nameEl = document.getElementById('user-name');
+  const greetingEl = document.getElementById('greeting-name'); // "Olá, <nome>" do mobile
   const initialsEl = document.getElementById('user-initials');
 
   if (!nome) return;
 
   const partes = nome.split(/\s+/);
   if (nameEl) nameEl.textContent = partes[0]; // primeiro nome
+  if (greetingEl) greetingEl.textContent = partes[0];
   if (initialsEl) {
     const iniciais = partes.slice(0, 2).map(p => p[0].toUpperCase()).join('');
     initialsEl.textContent = iniciais;

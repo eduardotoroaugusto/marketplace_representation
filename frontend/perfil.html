@@ -57,6 +57,14 @@
     </div>
   </header>
 
+  <!-- Barra superior (só no layout mobile) -->
+  <header class="m-topbar only-mobile">
+    <a href="catalogo.html" class="m-back" aria-label="Voltar para a Home">
+      <span class="mask-icon icon-20" style="-webkit-mask-image: url(assets/icons/arrow-left.svg); mask-image: url(assets/icons/arrow-left.svg)"></span>
+    </a>
+    <h1 class="m-title">Perfil</h1>
+  </header>
+
   <!-- Corpo do perfil -->
   <main class="profile-body">
     <!-- Menu lateral -->
@@ -87,11 +95,12 @@
 
       <div class="avatar-row">
         <div class="profile-avatar">
-          <img src="assets/icons/user.svg" alt="" class="icon-24">
+          <img src="assets/icons/user.svg" alt="" class="icon-24 only-desktop">
+          <span class="mask-icon avatar-icon only-mobile" style="-webkit-mask-image: url(assets/icons/avatar-user.svg); mask-image: url(assets/icons/avatar-user.svg)"></span>
         </div>
         <div class="avatar-text">
           <span class="avatar-caption">[FOTO DO PERFIL]</span>
-          <a href="#" class="avatar-link" id="btn-change-photo">Alterar foto de perfil</a>
+          <a href="#" class="avatar-link" id="btn-change-photo">Alterar foto<span class="only-desktop"> de perfil</span></a>
         </div>
       </div>
 
@@ -147,6 +156,15 @@
           </div>
         </div>
 
+        <!-- Atalho para os pedidos (layout mobile) -->
+        <a href="compras.html" class="orders-link only-mobile">
+          <span class="orders-link-label">
+            <span class="mask-icon icon-18" style="-webkit-mask-image: url(assets/icons/orders-cart.svg); mask-image: url(assets/icons/orders-cart.svg)"></span>
+            Meus pedidos
+          </span>
+          <span class="mask-icon icon-18" style="-webkit-mask-image: url(assets/icons/chevron-right.svg); mask-image: url(assets/icons/chevron-right.svg)"></span>
+        </a>
+
         <div class="profile-actions">
           <button type="button" class="btn-secondary" id="btn-logout-account">Sair da Conta</button>
           <button type="submit" class="btn-primary" id="btn-save-profile">Salvar alterações</button>
@@ -154,6 +172,30 @@
       </form>
     </section>
   </main>
+
+  <!-- Navegação inferior (só no layout mobile) -->
+  <nav class="bottom-nav" aria-label="Navegação principal">
+    <a href="catalogo.html" class="bottom-tab">
+      <span class="mask-icon icon-20" style="-webkit-mask-image: url(assets/icons/nav-home.svg); mask-image: url(assets/icons/nav-home.svg)"></span>
+      <span>Home</span>
+    </a>
+    <a href="compras.html" class="bottom-tab">
+      <span class="mask-icon icon-20" style="-webkit-mask-image: url(assets/icons/nav-bag.svg); mask-image: url(assets/icons/nav-bag.svg)"></span>
+      <span>Compras</span>
+    </a>
+    <a href="jogos.html" class="bottom-tab">
+      <span class="mask-icon icon-20" style="-webkit-mask-image: url(assets/icons/nav-gamepad.svg); mask-image: url(assets/icons/nav-gamepad.svg)"></span>
+      <span>Jogos</span>
+    </a>
+    <a href="notificacoes.html" class="bottom-tab">
+      <span class="mask-icon icon-20" style="-webkit-mask-image: url(assets/icons/nav-bell.svg); mask-image: url(assets/icons/nav-bell.svg)"></span>
+      <span>Notificações</span>
+    </a>
+    <a href="perfil.html" class="bottom-tab active" aria-current="page">
+      <span class="mask-icon icon-20" style="-webkit-mask-image: url(assets/icons/nav-user.svg); mask-image: url(assets/icons/nav-user.svg)"></span>
+      <span>Perfil</span>
+    </a>
+  </nav>
 
   <!-- Scripts (core -> models -> services -> viewmodels -> views -> events -> main) -->
   <script src="js/core/observable.js"></script>

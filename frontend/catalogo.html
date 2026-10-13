@@ -57,8 +57,37 @@
     </div>
   </header>
 
+  <!-- Barra superior (só no layout mobile) -->
+  <header class="m-topbar only-mobile">
+    <p class="m-greeting">Olá, <span id="greeting-name">Usuário</span></p>
+    <div class="m-actions">
+      <a href="notificacoes.html" class="m-icon-btn" aria-label="Notificações">
+        <span class="mask-icon icon-20" style="-webkit-mask-image: url(assets/icons/m-bell.svg); mask-image: url(assets/icons/m-bell.svg)"></span>
+        <span class="m-badge alert hidden" data-notif-count>0</span>
+      </a>
+      <a href="compras.html" class="m-icon-btn" aria-label="Carrinho">
+        <span class="mask-icon icon-20" style="-webkit-mask-image: url(assets/icons/m-cart.svg); mask-image: url(assets/icons/m-cart.svg)"></span>
+        <span class="m-badge" data-cart-count>0</span>
+      </a>
+    </div>
+  </header>
+
   <!-- Corpo -->
   <main class="home-body">
+    <!-- Busca e categorias do layout mobile -->
+    <div class="m-search only-mobile">
+      <img src="assets/icons/search.svg" alt="" class="icon-16">
+      <input type="text" id="search-input-mobile" placeholder="Buscar produtos, marcas..." aria-label="Buscar produtos">
+    </div>
+    <div class="category-chips only-mobile" id="category-chips">
+      <button type="button" class="chip active" data-category="Todos">Todos</button>
+      <button type="button" class="chip" data-category="Eletrônicos">Eletrônicos</button>
+      <button type="button" class="chip" data-category="Roupas">Roupas</button>
+      <button type="button" class="chip" data-category="Casa">Casa</button>
+      <button type="button" class="chip" data-category="Esportes">Esportes</button>
+      <button type="button" class="chip" data-category="Livros">Livros</button>
+    </div>
+
     <!-- Filtros -->
     <aside class="sidebar-filters">
       <h2 class="sidebar-title">Categorias</h2>
@@ -113,6 +142,30 @@
       </div>
     </section>
   </main>
+
+  <!-- Navegação inferior (só no layout mobile) -->
+  <nav class="bottom-nav" aria-label="Navegação principal">
+    <a href="catalogo.html" class="bottom-tab active" aria-current="page">
+      <span class="mask-icon icon-20" style="-webkit-mask-image: url(assets/icons/nav-home.svg); mask-image: url(assets/icons/nav-home.svg)"></span>
+      <span>Home</span>
+    </a>
+    <a href="compras.html" class="bottom-tab">
+      <span class="mask-icon icon-20" style="-webkit-mask-image: url(assets/icons/nav-bag.svg); mask-image: url(assets/icons/nav-bag.svg)"></span>
+      <span>Compras</span>
+    </a>
+    <a href="jogos.html" class="bottom-tab">
+      <span class="mask-icon icon-20" style="-webkit-mask-image: url(assets/icons/nav-gamepad.svg); mask-image: url(assets/icons/nav-gamepad.svg)"></span>
+      <span>Jogos</span>
+    </a>
+    <a href="notificacoes.html" class="bottom-tab">
+      <span class="mask-icon icon-20" style="-webkit-mask-image: url(assets/icons/nav-bell.svg); mask-image: url(assets/icons/nav-bell.svg)"></span>
+      <span>Notificações</span>
+    </a>
+    <a href="perfil.html" class="bottom-tab">
+      <span class="mask-icon icon-20" style="-webkit-mask-image: url(assets/icons/nav-user.svg); mask-image: url(assets/icons/nav-user.svg)"></span>
+      <span>Perfil</span>
+    </a>
+  </nav>
 
   <!-- Scripts (core -> models -> services -> viewmodels -> views -> events -> main) -->
   <script src="js/core/observable.js"></script>

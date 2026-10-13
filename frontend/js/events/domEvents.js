@@ -136,20 +136,20 @@ function setupCatalogEvents() {
   const catalogGrid = document.getElementById('catalog-grid');
   if (!catalogGrid) return; // só executa na Home
 
-  // Busca de produtos em tempo real (teclado)
-  const searchInput = document.getElementById('search-input');
-  if (searchInput) {
-    searchInput.addEventListener('input', (e) => catalogViewModel.setSearch(e.target.value));
-  }
+  // Busca de produtos em tempo real (teclado) — campo da top-nav e do layout mobile
+  document.querySelectorAll('#search-input, #search-input-mobile').forEach(input => {
+    input.addEventListener('input', (e) => catalogViewModel.setSearch(e.target.value));
+  });
 
-  // Filtro por categoria (delegação no container da lista)
-  const categoryList = document.getElementById('category-list');
-  if (categoryList) {
-    categoryList.addEventListener('click', (e) => {
-      const item = e.target.closest('.category-item');
+  // Filtro por categoria (delegação): lista lateral no desktop, chips no mobile
+  ['category-list', 'category-chips'].forEach(id => {
+    const container = document.getElementById(id);
+    if (!container) return;
+    container.addEventListener('click', (e) => {
+      const item = e.target.closest('[data-category]');
       if (item) catalogViewModel.setCategory(item.dataset.category);
     });
-  }
+  });
 
   // Ordenação
   const sortSelect = document.getElementById('sort-select');
@@ -283,14 +283,71 @@ function setupNotificationsEvents() {
     }
   });
 
-  // Marcar todas como lidas
-  const markAll = document.getElementById('mark-all-read');
-  if (markAll) {
-    markAll.addEventListener('click', (e) => {
+  // Marcar todas como lidas (link do desktop e "Lidas" do cabeçalho mobile)
+  ['mark-all-read', 'mark-all-read-mobile'].forEach(id => {
+    const btn = document.getElementById(id);
+    if (!btn) return;
+    btn.addEventListener('click', (e) => {
       e.preventDefault();
       notificationViewModel.markAllRead();
     });
-  }
+  });
+
+  setupSwipeToDelete(list);
+}
+
+// Toque: arrastar uma notificação para o lado a exclui (o card acompanha o dedo)
+function setupSwipeToDelete(list) {
+  const LIMIT = 90; // px arrastados para confirmar a exclusão
+  let drag = null;  // { row, id, startX, startY, dx, horizontal }
+
+  list.addEventListener('pointerdown', (e) => {
+    if (e.pointerType === 'mouse') return;
+    const row = e.target.closest('.notif-row');
+    if (!row) return;
+    drag = { row, id: parseInt(row.dataset.id, 10), startX: e.clientX, startY: e.clientY, dx: 0, horizontal: null };
+  });
+
+  list.addEventListener('pointermove', (e) => {
+    if (!drag) return;
+    const dx = e.clientX - drag.startX;
+    const dy = e.clientY - drag.startY;
+    // Decide no começo do gesto se é arrastar para o lado ou rolar a lista
+    if (drag.horizontal === null && (Math.abs(dx) > 8 || Math.abs(dy) > 8)) {
+      drag.horizontal = Math.abs(dx) > Math.abs(dy);
+    }
+    if (!drag.horizontal) return;
+    drag.dx = dx;
+    drag.row.classList.add('swiping');
+    drag.row.style.transform = `translateX(${dx}px)`;
+    drag.row.style.opacity = String(Math.max(0.3, 1 - Math.abs(dx) / 250));
+  });
+
+  const finish = () => {
+    if (!drag) return;
+    const { row, id, dx, horizontal } = drag;
+    drag = null;
+    if (!horizontal) return;
+    row.classList.remove('swiping');
+    row.dataset.swiped = '1';
+    if (Math.abs(dx) >= LIMIT) {
+      notificationViewModel.remove(id);
+    } else {
+      row.style.transform = '';
+      row.style.opacity = '';
+    }
+  };
+  list.addEventListener('pointerup', finish);
+  list.addEventListener('pointercancel', finish);
+
+  // O toque que terminou um arrasto não deve também marcar a notificação como lida
+  list.addEventListener('click', (e) => {
+    const row = e.target.closest('.notif-row');
+    if (row && row.dataset.swiped) {
+      e.stopImmediatePropagation();
+      delete row.dataset.swiped;
+    }
+  }, true);
 }
 
 // ============================================================

@@ -55,10 +55,15 @@
     </div>
   </header>
 
+  <!-- Barra superior (só no layout mobile) -->
+  <header class="m-topbar only-mobile">
+    <h1 class="m-title">Compras</h1>
+  </header>
+
   <!-- Abas -->
   <div class="compras-tabs">
-    <button class="compras-tab active">Carrinho atual (<span id="cart-tab-count">0</span> itens)</button>
-    <button class="compras-tab">Histórico de pedidos</button>
+    <button class="compras-tab active">Carrinho atual<span class="only-desktop"> (<span id="cart-tab-count">0</span> itens)</span></button>
+    <button class="compras-tab">Histórico<span class="only-desktop"> de pedidos</span></button>
   </div>
 
   <!-- Corpo -->
@@ -72,6 +77,7 @@
       </div>
 
       <div class="coupon-row">
+        <label for="coupon-input" class="coupon-label only-mobile">Cupom de Desconto</label>
         <input type="text" id="coupon-input" class="coupon-input" placeholder="Código do cupom (Ex: PROMO10)">
         <button type="button" id="btn-apply-coupon" class="btn-secondary">Aplicar</button>
       </div>
@@ -103,7 +109,7 @@
         </div>
         <hr class="summary-divider">
         <div class="summary-line total">
-          <span>Total estimado</span>
+          <span><span class="only-desktop">Total estimado</span><span class="only-mobile">Total</span></span>
           <strong id="summary-total">R$ 0,00</strong>
         </div>
       </div>
@@ -111,7 +117,7 @@
       <hr class="summary-divider">
 
       <div class="summary-section">
-        <p class="summary-label">Entrega</p>
+        <p class="summary-label"><span class="only-desktop">Entrega</span><span class="only-mobile">Endereço de entrega</span></p>
         <div class="summary-delivery">
           <img src="assets/icons/map-pin.svg" alt="" class="icon-16">
           <span id="delivery-address">Av. Paulista, 1000 - São Paulo, SP</span>
@@ -130,6 +136,30 @@
       <button type="button" class="btn-primary" id="btn-checkout">Finalizar compra</button>
     </aside>
   </main>
+
+  <!-- Navegação inferior (só no layout mobile) -->
+  <nav class="bottom-nav" aria-label="Navegação principal">
+    <a href="catalogo.html" class="bottom-tab">
+      <span class="mask-icon icon-20" style="-webkit-mask-image: url(assets/icons/nav-home.svg); mask-image: url(assets/icons/nav-home.svg)"></span>
+      <span>Home</span>
+    </a>
+    <a href="compras.html" class="bottom-tab active" aria-current="page">
+      <span class="mask-icon icon-20" style="-webkit-mask-image: url(assets/icons/nav-bag.svg); mask-image: url(assets/icons/nav-bag.svg)"></span>
+      <span>Compras</span>
+    </a>
+    <a href="jogos.html" class="bottom-tab">
+      <span class="mask-icon icon-20" style="-webkit-mask-image: url(assets/icons/nav-gamepad.svg); mask-image: url(assets/icons/nav-gamepad.svg)"></span>
+      <span>Jogos</span>
+    </a>
+    <a href="notificacoes.html" class="bottom-tab">
+      <span class="mask-icon icon-20" style="-webkit-mask-image: url(assets/icons/nav-bell.svg); mask-image: url(assets/icons/nav-bell.svg)"></span>
+      <span>Notificações</span>
+    </a>
+    <a href="perfil.html" class="bottom-tab">
+      <span class="mask-icon icon-20" style="-webkit-mask-image: url(assets/icons/nav-user.svg); mask-image: url(assets/icons/nav-user.svg)"></span>
+      <span>Perfil</span>
+    </a>
+  </nav>
 
   <!-- Scripts -->
   <script src="js/core/observable.js"></script>

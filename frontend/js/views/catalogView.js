@@ -6,6 +6,8 @@ class CatalogView {
     this.gridEl = document.getElementById('catalog-grid');
     this.resultsTitleEl = document.getElementById('results-title');
     this.categoryListEl = document.getElementById('category-list');
+    this.categoryChipsEl = document.getElementById('category-chips');      // layout mobile
+    this.searchInputs = document.querySelectorAll('#search-input, #search-input-mobile');
   }
 
   init() {
@@ -13,6 +15,7 @@ class CatalogView {
   }
 
   render(state) {
+    this.renderSearch(state);
     this.renderResultsTitle(state);
     this.renderCategories(state);
     this.renderGrid(state);
@@ -24,11 +27,19 @@ class CatalogView {
     this.resultsTitleEl.textContent = `Resultados de busca para "${alvo}"`;
   }
 
+  // Mantém a busca do desktop e a do mobile com o mesmo texto
+  renderSearch(state) {
+    this.searchInputs.forEach(input => {
+      if (input.value !== state.searchQuery) input.value = state.searchQuery;
+    });
+  }
+
   renderCategories(state) {
-    if (!this.categoryListEl) return;
-    this.categoryListEl.querySelectorAll('.category-item').forEach(item => {
-      const isActive = item.dataset.category === state.category;
-      item.classList.toggle('active', isActive);
+    [this.categoryListEl, this.categoryChipsEl].forEach(container => {
+      if (!container) return;
+      container.querySelectorAll('[data-category]').forEach(item => {
+        item.classList.toggle('active', item.dataset.category === state.category);
+      });
     });
   }
 
@@ -73,7 +84,9 @@ class CatalogView {
       </div>
       <button class="btn-add-cart" data-id="${product.id}" ${product.inStock ? '' : 'disabled'}>
         <img src="assets/icons/plus.svg" alt="" class="icon-16">
-        ${product.inStock ? 'Adicionar ao carrinho' : 'Esgotado'}
+        ${product.inStock
+          ? '<span class="only-desktop">Adicionar ao carrinho</span><span class="only-mobile">Adicionar</span>'
+          : 'Esgotado'}
       </button>
     `;
 

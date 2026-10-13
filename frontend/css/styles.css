@@ -1706,8 +1706,7 @@ body {
 /* Elementos que só aparecem no layout mobile */
 .pill-star,
 .joystick-mobile,
-.hint-touch,
-.bottom-nav {
+.hint-touch {
   display: none;
 }
 
@@ -1715,15 +1714,6 @@ body {
    Jogos — layout mobile (Figma 42:347)
    ============================================================ */
 @media (max-width: 600px) {
-  .arcade-body {
-    /* espaço para a navegação inferior fixa */
-    padding-bottom: calc(56px + env(safe-area-inset-bottom));
-  }
-
-  .arcade-body .top-nav {
-    display: none;
-  }
-
   /* Coluna única; .arcade-info some da árvore de layout para os cartões
      entrarem na ordem do design (tabela antes do botão, regras no fim) */
   .arcade {
@@ -1918,6 +1908,137 @@ body {
     color: #5A6B80;
   }
 
+  /* Navegação inferior com a tipografia/cor do design de Jogos */
+  .arcade-body .bottom-tab {
+    font-family: 'Geist', sans-serif;
+  }
+
+  .arcade-body .bottom-tab.active {
+    color: #162340;
+  }
+}
+
+/* ============================================================
+   Layout mobile — elementos comuns (Figma: frames mobile-*)
+   ============================================================ */
+
+/* Ícone exportado do Figma pintado pela cor do texto (permite estado ativo/inativo) */
+.mask-icon {
+  display: block;
+  flex-shrink: 0;
+  background-color: currentColor;
+  /* a imagem vem no style do elemento (url relativa à página) */
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+  mask-repeat: no-repeat;
+}
+
+.bottom-nav {
+  display: none;
+}
+
+@media (min-width: 601px) {
+  .only-mobile {
+    display: none !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .only-desktop {
+    display: none !important;
+  }
+
+  .catalog-body {
+    /* espaço para a navegação inferior fixa */
+    padding-bottom: calc(56px + env(safe-area-inset-bottom));
+  }
+
+  .catalog-body .top-nav {
+    display: none;
+  }
+
+  /* Barra superior de cada tela */
+  .m-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 9;
+    height: 48px;
+    padding: 0 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    background: #fff;
+    border-bottom: 1px solid var(--card-border);
+  }
+
+  .m-title {
+    flex: 1;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--navy);
+  }
+
+  .m-greeting {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--navy);
+  }
+
+  .m-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .m-icon-btn {
+    position: relative;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--navy);
+  }
+
+  .m-badge {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    min-width: 14px;
+    height: 14px;
+    padding: 0 3px;
+    border-radius: 7px;
+    background: var(--badge);
+    color: #fff;
+    font-size: 8px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .m-badge.alert {
+    background: var(--error);
+  }
+
+  .m-back {
+    display: flex;
+    color: var(--navy);
+  }
+
+  .m-link {
+    border: none;
+    background: none;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--label);
+    cursor: pointer;
+  }
+
   /* Navegação inferior */
   .bottom-nav {
     position: fixed;
@@ -1942,24 +2063,552 @@ body {
     align-items: center;
     gap: 2px;
     text-decoration: none;
-    font-family: 'Geist', sans-serif;
     font-size: 10px;
     font-weight: 500;
     color: #9CA3AF;
     white-space: nowrap;
   }
 
-  .bottom-tab .semibold {
-    font-weight: 600;
-  }
-
   .bottom-tab.active {
-    color: #162340;
+    font-weight: 600;
+    color: var(--navy);
   }
 
   .bottom-tab:focus-visible {
     outline: 2px solid #4AADE0;
     outline-offset: 2px;
     border-radius: 4px;
+  }
+
+  /* ---------- Login / Cadastro (Figma 26:12 e 80:83) ---------- */
+  .auth-body {
+    padding: 0;
+    align-items: stretch;
+    background: #fff;
+  }
+
+  .auth-card {
+    max-width: none;
+    min-height: 100vh;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 44px 19px 24px;
+  }
+
+  /* ---------- Home (Figma 26:76) ---------- */
+  .home-body {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+    padding: 16px;
+  }
+
+  .sidebar-filters,
+  .results-bar,
+  .load-more-wrap {
+    display: none;
+  }
+
+  .m-search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 40px;
+    padding: 0 12px;
+    background: #fff;
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+  }
+
+  .m-search:focus-within {
+    border-color: var(--navy);
+  }
+
+  .m-search input {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 13px;
+    color: var(--navy);
+  }
+
+  .m-search input::placeholder {
+    color: var(--placeholder);
+  }
+
+  /* Chips roláveis na horizontal, encostando nas bordas da tela */
+  .category-chips {
+    display: flex;
+    gap: 8px;
+    margin: 0 -16px;
+    padding: 0 16px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .category-chips::-webkit-scrollbar {
+    display: none;
+  }
+
+  .chip {
+    flex-shrink: 0;
+    padding: 6px 12px;
+    border: 1px solid var(--card-border);
+    border-radius: 20px;
+    background: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--label);
+    cursor: pointer;
+  }
+
+  .chip.active {
+    background: var(--navy);
+    border-color: var(--navy);
+    color: #fff;
+  }
+
+  .grid-area {
+    gap: 12px;
+  }
+
+  .catalog-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .product-card {
+    padding: 8px;
+    gap: 8px;
+  }
+
+  .product-card.highlight {
+    transform: none;
+    box-shadow: none;
+  }
+
+  .product-image {
+    height: 100px;
+    font-size: 9px;
+    gap: 4px;
+  }
+
+  .product-body {
+    gap: 2px;
+  }
+
+  .product-name {
+    font-size: 12px;
+  }
+
+  .product-price {
+    font-size: 13px;
+  }
+
+  .product-rating {
+    display: none;
+  }
+
+  .btn-add-cart {
+    gap: 4px;
+  }
+
+  /* ---------- Compras (Figma 26:230) ---------- */
+  .compras-tabs {
+    height: 40px;
+    gap: 0;
+    padding: 0;
+  }
+
+  .compras-tab {
+    flex: 1;
+    padding: 0;
+    font-size: 13px;
+    color: var(--placeholder);
+  }
+
+  .compras-tab.active {
+    font-weight: 600;
+  }
+
+  /* Coluna única: a ordem segue o design (itens, cupom, entrega, pagamento, totais) */
+  .compras-body {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+    padding: 16px;
+  }
+
+  .cart-left,
+  .summary-right {
+    display: contents;
+  }
+
+  #cart-feedback      { order: 1; }
+  .items-card         { order: 2; }
+  .coupon-row         { order: 3; }
+  #coupon-feedback    { order: 4; }
+  .points-row         { order: 5; }
+  #points-feedback    { order: 6; }
+  .summary-section    { order: 7; }
+  .summary-lines      { order: 8; }
+  #btn-checkout       { order: 9; }
+
+  .summary-title,
+  .summary-right > .summary-divider {
+    display: none;
+  }
+
+  /* Cada item vira um card separado */
+  .items-card {
+    background: none;
+    border: none;
+    border-radius: 0;
+    overflow: visible;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .items-card.empty {
+    padding: 32px 16px;
+    background: #fff;
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+  }
+
+  .cart-row,
+  .cart-row:last-child {
+    display: grid;
+    grid-template-columns: 60px auto 1fr auto;
+    grid-template-areas:
+      "thumb name name  remove"
+      "thumb qty  total remove";
+    align-items: center;
+    column-gap: 12px;
+    row-gap: 4px;
+    padding: 8px;
+    background: #fff;
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+  }
+
+  .cart-thumb {
+    grid-area: thumb;
+    width: 60px;
+    height: 60px;
+    font-size: 9px;
+  }
+
+  .cart-item-info {
+    grid-area: name;
+  }
+
+  .cart-item-name {
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .cart-item-unit {
+    display: none;
+  }
+
+  .qty-stepper {
+    grid-area: qty;
+    gap: 8px;
+    padding: 4px;
+    border: 1px solid var(--card-border);
+    border-radius: 4px;
+  }
+
+  .qty-btn {
+    width: 16px;
+    height: 16px;
+    border: none;
+    font-size: 12px;
+  }
+
+  .qty-value {
+    font-size: 12px;
+    font-weight: 600;
+    min-width: 8px;
+  }
+
+  .cart-item-total {
+    grid-area: total;
+    width: auto;
+    font-size: 13px;
+  }
+
+  .cart-remove {
+    grid-area: remove;
+    width: 24px;
+    height: 24px;
+    color: var(--placeholder);
+  }
+
+  /* Cupom: rótulo em cima, campo + botão de 80px na mesma linha */
+  .coupon-row {
+    display: grid;
+    grid-template-columns: 1fr 80px;
+    column-gap: 8px;
+    row-gap: 4px;
+    align-items: end;
+  }
+
+  .coupon-label {
+    grid-column: 1 / -1;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--label);
+  }
+
+  .coupon-input {
+    width: 100%;
+    height: 40px;
+  }
+
+  .coupon-row .btn-secondary {
+    height: 40px;
+    padding: 0;
+    background: var(--navy);
+    border-color: var(--navy);
+    color: #fff;
+    font-size: 13px;
+  }
+
+  .points-row {
+    justify-content: space-between;
+  }
+
+  /* Entrega e pagamento em caixas */
+  .summary-section {
+    gap: 4px;
+    margin-top: -8px;
+    padding: 8px;
+    background: #fff;
+    border: 1px solid var(--card-border);
+    border-radius: 6px;
+  }
+
+  .summary-section .summary-label {
+    font-weight: 600;
+  }
+
+  .summary-delivery {
+    font-size: 12px;
+  }
+
+  .summary-delivery .icon-16 {
+    display: none;
+  }
+
+  .payment-select {
+    height: auto;
+    border: none;
+    padding: 0;
+    gap: 6px;
+    font-size: 12px;
+  }
+
+  .payment-select .icon-16 {
+    width: 14px;
+    height: 14px;
+  }
+
+  .summary-lines {
+    gap: 6px;
+    padding-top: 8px;
+  }
+
+  .summary-line strong {
+    font-weight: 400;
+  }
+
+  .summary-line #summary-discount {
+    color: #10B981;
+  }
+
+  .summary-line.total strong {
+    font-size: 15px;
+    font-weight: 700;
+  }
+
+  /* ---------- Perfil (Figma 26:167) ---------- */
+  .profile-body {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 0;
+  }
+
+  .sidebar-menu,
+  .profile-title {
+    display: none;
+  }
+
+  .profile-content {
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    padding: 24px;
+    gap: 20px;
+  }
+
+  .avatar-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .profile-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 40px;
+    color: var(--navy);
+  }
+
+  .avatar-icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .avatar-caption {
+    display: none;
+  }
+
+  .avatar-link {
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--label);
+    text-decoration: none;
+  }
+
+  .profile-form {
+    gap: 12px;
+  }
+
+  .profile-row {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .orders-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 8px;
+    padding: 8px 0;
+    border-top: 1px solid var(--card-border);
+    border-bottom: 1px solid var(--card-border);
+    color: var(--navy);
+    text-decoration: none;
+  }
+
+  .orders-link-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  /* Salvar em cima, Sair embaixo, ambos com a largura toda */
+  .profile-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+    gap: 8px;
+    margin-top: 8px;
+    padding-top: 0;
+    border-top: none;
+  }
+
+  /* ---------- Notificações (Figma 26:320) ---------- */
+  .notif-body {
+    padding: 16px;
+  }
+
+  .inbox-header {
+    display: none;
+  }
+
+  .inbox-container {
+    gap: 0;
+  }
+
+  /* Cada notificação vira um card separado */
+  .notif-card {
+    background: none;
+    border: none;
+    border-radius: 0;
+    overflow: visible;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .notif-row,
+  .notif-row:last-child {
+    gap: 12px;
+    padding: 12px;
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    touch-action: pan-y; /* rolar a lista continua; o arrasto lateral exclui */
+    transition: transform 0.2s, opacity 0.2s;
+  }
+
+  .notif-row.swiping {
+    transition: none;
+  }
+
+  .notif-icon {
+    color: var(--navy);
+  }
+
+  .notif-title {
+    font-size: 12px;
+    line-height: normal;
+  }
+
+  .notif-row.unread .notif-title {
+    font-weight: 600;
+  }
+
+  .notif-text {
+    gap: 2px;
+  }
+
+  .notif-time {
+    font-size: 10px;
+  }
+
+  .notif-actions {
+    gap: 8px;
+  }
+
+  .notif-delete {
+    width: 20px;
+    height: 20px;
+    color: var(--placeholder);
+  }
+
+  .notif-empty {
+    background: #fff;
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+  }
+
+  .swipe-hint {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding-top: 12px;
+    font-size: 11px;
+    color: var(--placeholder);
   }
 }
