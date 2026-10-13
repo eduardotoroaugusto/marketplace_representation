@@ -4,7 +4,9 @@
 class GameViewModel {
   constructor() {
     this.game = null;                                 // CosmoGame da partida atual
+    this.layout = GAME_LAYOUTS.desktop;               // tamanho do monitor (desktop/mobile)
     this.input = { left: false, right: false, fire: false };
+    this.touchTargetX = null;                         // x do dedo no monitor (controle por toque)
 
     this.state = new Observable({
       isLoading: true,
@@ -45,7 +47,7 @@ class GameViewModel {
     const updated = new ArcadeStats({ ...stats, playsToday: stats.playsToday + 1 });
     ApiService.saveArcadeStats(updated);
 
-    this.game = new CosmoGame();
+    this.game = new CosmoGame(Math.random, this.layout);
     this.resetInput();
     this._patch({
       phase: 'playing',
@@ -81,6 +83,31 @@ class GameViewModel {
 
   resetInput() {
     this.input = { left: false, right: false, fire: false };
+    this.touchTargetX = null;
+  }
+
+  // Troca o tamanho do monitor; só vale entre partidas para não deformar a atual
+  setLayout(name) {
+    const layout = GAME_LAYOUTS[name];
+    if (!layout || layout === this.layout || this.state.value.phase === 'playing' || this.state.value.phase === 'confirm') return false;
+    this.layout = layout;
+    this.game = null; // o quadro parado volta para a formação do novo layout
+    this._patch({});
+    return true;
+  }
+
+  // Toque: enquanto o dedo está no monitor a nave segue até ele e atira (null = soltou)
+  setTouchTarget(x) {
+    this.touchTargetX = x;
+  }
+
+  // Converte o alvo do toque em comandos de esquerda/direita/tiro
+  _touchInput() {
+    if (this.touchTargetX === null || !this.game) return this.input;
+    const p = this.game.player;
+    const delta = this.touchTargetX - (p.x + p.w / 2);
+    const deadZone = p.w / 4; // evita a nave tremer em volta do dedo
+    return { left: delta < -deadZone, right: delta > deadZone, fire: true };
   }
 
   isPlaying() {
@@ -90,7 +117,7 @@ class GameViewModel {
   // Chamado a cada quadro pela View; só publica estado quando placar/vidas mudam
   tick(dt) {
     if (!this.isPlaying() || !this.game) return;
-    this.game.update(dt, this.input);
+    this.game.update(dt, this._touchInput());
 
     const { score, lives } = this.state.value;
     if (this.game.score !== score || this.game.lives !== lives) {

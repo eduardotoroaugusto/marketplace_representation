@@ -1702,3 +1702,264 @@ body {
   font-size: 13px;
   color: #AFC1D4;
 }
+
+/* Elementos que só aparecem no layout mobile */
+.pill-star,
+.joystick-mobile,
+.hint-touch,
+.bottom-nav {
+  display: none;
+}
+
+/* ============================================================
+   Jogos — layout mobile (Figma 42:347)
+   ============================================================ */
+@media (max-width: 600px) {
+  .arcade-body {
+    /* espaço para a navegação inferior fixa */
+    padding-bottom: calc(56px + env(safe-area-inset-bottom));
+  }
+
+  .arcade-body .top-nav {
+    display: none;
+  }
+
+  /* Coluna única; .arcade-info some da árvore de layout para os cartões
+     entrarem na ordem do design (tabela antes do botão, regras no fim) */
+  .arcade {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    padding: 20px 24px;
+  }
+
+  .arcade-info {
+    display: contents;
+  }
+
+  .arcade-heading        { order: 1; }
+  .arcade-monitor        { order: 2; }
+  .info-card.conversion  { order: 3; }
+  .play-action           { order: 4; }
+  .play-limit            { order: 5; }
+  .play-error            { order: 6; }
+  .info-card.how-to      { order: 7; }
+  .info-card.session     { display: none; }
+
+  /* Cabeçalho */
+  .arcade-heading {
+    height: auto;
+    align-items: center;
+  }
+
+  .arcade-title {
+    font-size: 18px;
+  }
+
+  .arcade-subtitle {
+    display: none;
+  }
+
+  .points-pill {
+    margin-top: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+  }
+
+  .pill-star {
+    display: block;
+    width: 14px;
+    height: 14px;
+  }
+
+  /* Monitor */
+  .arcade-monitor {
+    background:
+      radial-gradient(ellipse 171px 110px at center, rgba(124, 58, 237, 0.125), transparent),
+      #0F1D33;
+    touch-action: none; /* o toque controla a nave em vez de rolar a página */
+  }
+
+  .score-board {
+    left: 16px;
+    right: 16px;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
+  .score-block {
+    gap: 2px;
+  }
+
+  .score-block.hi {
+    align-items: flex-end;
+  }
+
+  .score-block.hi .score-label {
+    padding-left: 0;
+  }
+
+  .score-label {
+    font-size: 10px;
+  }
+
+  .score-value {
+    font-size: 12px;
+  }
+
+  /* Vidas no centro do topo, entre SCORE e HI-SCORE */
+  .lives-board {
+    right: auto;
+    left: 50%;
+    transform: translateX(-50%);
+    align-items: center;
+    gap: 2px;
+  }
+
+  .controls-hint {
+    bottom: 6px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 8px;
+  }
+
+  .hint-keys {
+    display: none;
+  }
+
+  .hint-touch {
+    display: inline;
+  }
+
+  .monitor-overlay {
+    padding: 12px;
+    gap: 6px;
+  }
+
+  .arcade .overlay-title {
+    font-size: 15px;
+  }
+
+  .overlay-text {
+    font-size: 12px;
+  }
+
+  .overlay-actions {
+    gap: 8px;
+    margin-top: 2px;
+  }
+
+  .arcade-btn {
+    height: 34px;
+    padding: 0 12px;
+    font-size: 12px;
+  }
+
+  /* Tabela de conversão */
+  .info-card.conversion {
+    padding: 14px;
+    gap: 8px;
+  }
+
+  .arcade .info-title {
+    font-size: 11px;
+  }
+
+  .conversion-rules {
+    gap: 4px;
+    font-size: 13px;
+  }
+
+  /* Botão principal: ícone ao lado do texto */
+  .play-action {
+    margin-top: 0;
+    height: 50px;
+    border-radius: 14px;
+    flex-direction: row;
+    justify-content: center;
+    gap: 8px;
+    padding: 0 16px;
+  }
+
+  .joystick-desktop {
+    display: none;
+  }
+
+  .joystick-mobile {
+    display: block;
+  }
+
+  .play-limit {
+    margin-top: -8px; /* 10px abaixo do botão, como no design */
+    font-size: 11px;
+    color: #5A6B80;
+  }
+
+  .play-error {
+    margin-top: -14px;
+  }
+
+  /* Como jogar: sem cartão, texto direto na página */
+  .info-card.how-to {
+    background: none;
+    border: none;
+    padding: 0;
+    gap: 8px;
+  }
+
+  .how-to-text {
+    font-size: 12px;
+    line-height: 1.4;
+    color: #5A6B80;
+  }
+
+  /* Navegação inferior */
+  .bottom-nav {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10;
+    display: flex;
+    justify-content: center;
+    gap: 9.5px;
+    height: calc(56px + env(safe-area-inset-bottom));
+    padding: 10.5px 16px env(safe-area-inset-bottom);
+    background: #fff;
+    border-top: 1px solid #D1D5DB;
+  }
+
+  .bottom-tab {
+    width: 64px;
+    height: 35px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    text-decoration: none;
+    font-family: 'Geist', sans-serif;
+    font-size: 10px;
+    font-weight: 500;
+    color: #9CA3AF;
+    white-space: nowrap;
+  }
+
+  .bottom-tab .semibold {
+    font-weight: 600;
+  }
+
+  .bottom-tab.active {
+    color: #162340;
+  }
+
+  .bottom-tab:focus-visible {
+    outline: 2px solid #4AADE0;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}

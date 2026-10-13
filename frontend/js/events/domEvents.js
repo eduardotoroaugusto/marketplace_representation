@@ -332,4 +332,26 @@ function setupGameEvents() {
 
   // Ao trocar de janela as teclas soltas não chegam: zera os comandos
   window.addEventListener('blur', () => gameViewModel.resetInput());
+
+  // Toque (celular): o dedo no monitor guia a nave e mantém o tiro ativo
+  const canvas = document.getElementById('game-canvas');
+  const monitor = document.getElementById('arcade-monitor');
+  const toGameX = (clientX) => {
+    const rect = canvas.getBoundingClientRect();
+    return (clientX - rect.left) / rect.width * gameViewModel.layout.width;
+  };
+  const handlePointer = (e) => {
+    if (e.pointerType === 'mouse' || !gameViewModel.isPlaying()) return;
+    e.preventDefault(); // não rola a página nem dá zoom enquanto joga
+    gameViewModel.setTouchTarget(toGameX(e.clientX));
+  };
+  const releasePointer = (e) => {
+    if (e.pointerType === 'mouse') return;
+    gameViewModel.setTouchTarget(null);
+  };
+  monitor.addEventListener('pointerdown', handlePointer);
+  monitor.addEventListener('pointermove', handlePointer);
+  monitor.addEventListener('pointerup', releasePointer);
+  monitor.addEventListener('pointercancel', releasePointer);
+  monitor.addEventListener('pointerleave', releasePointer);
 }

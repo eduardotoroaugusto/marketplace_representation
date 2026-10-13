@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Jogos - Cosmo Arcade</title>
   <link rel="stylesheet" href="css/styles.css">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@400;500;700&family=Unbounded:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@400;500;700&family=Unbounded:wght@400;700&family=Geist:wght@500;600&display=swap" rel="stylesheet">
 
   <!-- Proteção da tela -->
   <script>
@@ -63,7 +63,8 @@
         <p class="arcade-subtitle">Jogue, acumule pontos e transforme sua pontuação em desconto.</p>
       </div>
       <p class="points-pill" role="status" aria-live="polite">
-        <span id="points-balance">0</span> PTS
+        <img src="assets/icons/star-pts.svg" alt="" class="pill-star">
+        <span><span id="points-balance">0</span> PTS</span>
       </p>
     </div>
 
@@ -90,7 +91,10 @@
         <span class="score-value" id="lives-value">3</span>
       </div>
 
-      <p class="controls-hint">← → mover · ESPAÇO atirar · ESC cancelar</p>
+      <p class="controls-hint">
+        <span class="hint-keys">← → mover · ESPAÇO atirar · ESC cancelar</span>
+        <span class="hint-touch">Toque e segure para mover e atirar</span>
+      </p>
 
       <!-- Fim de partida -->
       <div class="monitor-overlay hidden" id="overlay-over" role="status" aria-live="polite">
@@ -111,7 +115,8 @@
     </section>
 
     <button type="button" class="play-action" id="btn-play">
-      <img src="assets/icons/joystick.svg" alt="" class="icon-18">
+      <img src="assets/icons/joystick.svg" alt="" class="icon-18 joystick-desktop">
+      <img src="assets/icons/joystick-mobile.svg" alt="" class="icon-18 joystick-mobile">
       <span id="btn-play-label">Jogar Cosmo Invaders</span>
     </button>
     <p class="play-limit" id="play-limit">Limite diário: 3 partidas (Restam 3 hoje)</p>
@@ -140,6 +145,30 @@
       </div>
     </div>
   </main>
+
+  <!-- Navegação inferior (só no layout mobile) -->
+  <nav class="bottom-nav" aria-label="Navegação principal">
+    <a href="catalogo.html" class="bottom-tab">
+      <img src="assets/icons/nav-home.svg" alt="" class="icon-20">
+      <span>Home</span>
+    </a>
+    <a href="compras.html" class="bottom-tab">
+      <img src="assets/icons/nav-bag.svg" alt="" class="icon-20">
+      <span>Compras</span>
+    </a>
+    <a href="jogos.html" class="bottom-tab active" aria-current="page">
+      <img src="assets/icons/nav-gamepad.svg" alt="" class="icon-20">
+      <span>Jogos</span>
+    </a>
+    <a href="notificacoes.html" class="bottom-tab">
+      <img src="assets/icons/nav-bell.svg" alt="" class="icon-20">
+      <span class="semibold">Notificações</span>
+    </a>
+    <a href="perfil.html" class="bottom-tab">
+      <img src="assets/icons/nav-user.svg" alt="" class="icon-20">
+      <span>Perfil</span>
+    </a>
+  </nav>
 
   <!-- Scripts -->
   <script src="js/core/observable.js"></script>

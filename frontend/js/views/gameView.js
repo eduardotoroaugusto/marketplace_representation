@@ -37,11 +37,28 @@ class GameView {
     this.rafId = null;
     this.lastTime = 0;
     this.lastPhase = null;
-    this.previewAliens = CosmoGame.formation();
+    this.previewAliens = [];
+
+    // Mesmo breakpoint do CSS: abaixo dele o monitor segue o design mobile
+    this.mobileQuery = window.matchMedia('(max-width: 600px)');
   }
 
   init() {
+    this.applyLayout();
+    this.mobileQuery.addEventListener('change', () => this.applyLayout());
     this.viewModel.state.subscribe(state => this.render(state));
+  }
+
+  // Ajusta o canvas ao layout do ViewModel (resolução multiplicada pela densidade da tela)
+  applyLayout() {
+    this.viewModel.setLayout(this.mobileQuery.matches ? 'mobile' : 'desktop');
+    const { width, height } = this.viewModel.layout;
+    const scale = Math.max(1, Math.round(window.devicePixelRatio || 1));
+    this.canvas.width = width * scale;
+    this.canvas.height = height * scale;
+    this.ctx.setTransform(scale, 0, 0, scale, 0, 0);
+    this.previewAliens = CosmoGame.formation(this.viewModel.layout);
+    if (!this.rafId) this.draw();
   }
 
   render(state) {
@@ -122,6 +139,8 @@ class GameView {
       this.monitorEl.focus(); // tira o foco do botão para o ESPAÇO não acioná-lo
     } else {
       this.stopLoop();
+      // Se a tela mudou de tamanho durante a partida, o novo layout entra agora
+      if (state.phase === 'over') this.applyLayout();
     }
 
     if (state.phase === 'confirm') this.cancelBtnEl.focus();
@@ -151,7 +170,8 @@ class GameView {
   draw() {
     const ctx = this.ctx;
     const game = this.viewModel.game;
-    ctx.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+    const layout = this.viewModel.layout;
+    ctx.clearRect(0, 0, layout.width, layout.height);
 
     // Sem partida: mostra a formação do design com a nave centralizada
     const aliens = game ? game.aliens : this.previewAliens;
@@ -166,9 +186,7 @@ class GameView {
       });
     }
 
-    const player = game
-      ? game.player
-      : { x: (GAME_WIDTH - PLAYER_W) / 2, y: PLAYER_Y, w: PLAYER_W, h: PLAYER_H };
+    const player = game ? game.player : CosmoGame.startPlayer(layout);
     // Pisca enquanto está invulnerável após ser atingido
     const blinking = game && game.invulnerable > 0 && Math.floor(game.invulnerable * 10) % 2 === 0;
     if (!blinking) this.drawSprite(this.sprites.player, player);
