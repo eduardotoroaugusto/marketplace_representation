@@ -1,0 +1,8 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Notifications">
+<g id="Bell">
+<path id="Glyph" d="M16 9C17.1811 9.00012 18.2951 9.42366 19.1016 10.1494C19.9046 10.8721 20.3329 11.8281 20.333 12.7998C20.333 14.7175 20.6674 16.0778 21.2217 17.1338C21.6465 17.9431 22.1801 18.5254 22.6709 19H9.3291C9.81916 18.5257 10.3525 17.9432 10.7773 17.1338C11.3314 16.078 11.666 14.7177 11.666 12.7998C11.6661 11.8281 12.0944 10.8721 12.8975 10.1494C13.704 9.42356 14.8187 9 16 9Z" stroke="#ADC9FF" stroke-width="2" stroke-linecap="round"/>
+</g>
+<circle id="Unread indicator" cx="26" cy="6" r="4" fill="#EF4444"/>
+</g>
+</svg>

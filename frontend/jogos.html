@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jogos - Cosmo Arcade</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@400;500;700&family=Unbounded:wght@400;700&display=swap" rel="stylesheet">
+
+  <!-- Proteção da tela -->
+  <script>
+    if (!localStorage.getItem('authToken') || !localStorage.getItem('authEmail')) {
+      window.location.href = 'index.html';
+    }
+  </script>
+</head>
+<body class="catalog-body arcade-body">
+
+  <!-- Barra de navegação superior (variante escura) -->
+  <header class="top-nav nav-dark">
+    <div class="nav-left">
+      <div class="logo-badge">
+        <img src="assets/icons/cart-logo.svg" alt="" class="icon-16">
+        <span>[LOGO]</span>
+      </div>
+      <nav class="nav-links">
+        <a href="catalogo.html" class="nav-link">Home</a>
+        <a href="compras.html" class="nav-link">Compras</a>
+        <a href="jogos.html" class="nav-link active">Jogos</a>
+      </nav>
+    </div>
+
+    <div class="nav-search">
+      <img src="assets/icons/search-dark.svg" alt="" class="icon-16">
+      <input type="text" id="search-input" placeholder="Buscar produtos, marcas...">
+    </div>
+
+    <div class="nav-right">
+      <button class="nav-icon-btn" id="btn-notif" aria-label="Notificações">
+        <img src="assets/icons/bell-dark.svg" alt="" class="icon-32">
+      </button>
+      <button class="nav-icon-btn cart-trigger" id="btn-cart" aria-label="Carrinho">
+        <img src="assets/icons/bag-dark.svg" alt="" class="icon-20">
+        <span class="cart-badge" id="cart-count">0</span>
+      </button>
+      <div class="user-menu" id="user-menu">
+        <div class="user-avatar" id="user-initials">JD</div>
+        <span class="user-name" id="user-name">Usuário</span>
+        <img src="assets/icons/chevron-down-dark.svg" alt="" class="icon-12">
+        <div class="user-dropdown hidden" id="user-dropdown">
+          <a href="perfil.html" class="dropdown-item dropdown-link">Meu perfil</a>
+          <button class="dropdown-item" id="btn-logout">Sair</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Corpo -->
+  <main class="arcade">
+    <div class="arcade-heading">
+      <div class="arcade-heading-copy">
+        <h1 class="arcade-title">Cosmo Arcade</h1>
+        <p class="arcade-subtitle">Jogue, acumule pontos e transforme sua pontuação em desconto.</p>
+      </div>
+      <p class="points-pill" role="status" aria-live="polite">
+        <span id="points-balance">0</span> PTS
+      </p>
+    </div>
+
+    <!-- Monitor do jogo -->
+    <section class="arcade-monitor" id="arcade-monitor" tabindex="-1" aria-label="Jogo Cosmo Invaders">
+      <canvas id="game-canvas" width="1192" height="412" role="img"
+              aria-label="Área do jogo: sua nave na parte de baixo enfrenta duas fileiras de aliens.">
+        Seu navegador não suporta o jogo. Os pontos e partidas continuam disponíveis abaixo.
+      </canvas>
+
+      <div class="score-board">
+        <div class="score-block">
+          <span class="score-label">SCORE</span>
+          <span class="score-value" id="score-value" role="status" aria-live="polite">0000</span>
+        </div>
+        <div class="score-block hi">
+          <span class="score-label">HI-SCORE</span>
+          <output class="score-value" id="hiscore-value">0000</output>
+        </div>
+      </div>
+
+      <div class="lives-board" id="lives-board">
+        <span class="score-label">VIDAS</span>
+        <span class="score-value" id="lives-value">3</span>
+      </div>
+
+      <p class="controls-hint">← → mover · ESPAÇO atirar · ESC cancelar</p>
+
+      <!-- Fim de partida -->
+      <div class="monitor-overlay hidden" id="overlay-over" role="status" aria-live="polite">
+        <p class="overlay-title">FIM DE JOGO</p>
+        <p class="overlay-text" id="overlay-over-text"></p>
+      </div>
+
+      <!-- Confirmação de reinício -->
+      <div class="monitor-overlay hidden" id="overlay-confirm" role="alertdialog"
+           aria-labelledby="confirm-title" aria-describedby="confirm-text">
+        <p class="overlay-title" id="confirm-title">REINICIAR PARTIDA?</p>
+        <p class="overlay-text" id="confirm-text"></p>
+        <div class="overlay-actions">
+          <button type="button" class="arcade-btn ghost" id="btn-cancel-restart">Continuar jogando</button>
+          <button type="button" class="arcade-btn" id="btn-confirm-restart">Reiniciar</button>
+        </div>
+      </div>
+    </section>
+
+    <button type="button" class="play-action" id="btn-play">
+      <img src="assets/icons/joystick.svg" alt="" class="icon-18">
+      <span id="btn-play-label">Jogar Cosmo Invaders</span>
+    </button>
+    <p class="play-limit" id="play-limit">Limite diário: 3 partidas (Restam 3 hoje)</p>
+    <p class="play-error hidden" id="play-error" role="alert"></p>
+
+    <!-- Informações -->
+    <div class="arcade-info">
+      <div class="info-card conversion">
+        <h2 class="info-title gold">TABELA DE CONVERSÃO</h2>
+        <ul class="conversion-rules">
+          <li>• 100 pontos = R$ 2,00 de desconto</li>
+          <li>• 250 pontos = R$ 5,00 de desconto</li>
+          <li>• 500 pontos = R$ 10,00 de desconto</li>
+        </ul>
+      </div>
+
+      <div class="info-card how-to">
+        <h2 class="info-title">COMO JOGAR &amp; REGRAS</h2>
+        <p class="how-to-text">Desvie dos mísseis alienígenas e destrua os Cosmo Invaders. Cada alien derrotado soma pontos ao seu saldo do carrinho. Mantenha seu hi-score para prêmios extras no fim do mês!</p>
+      </div>
+
+      <div class="info-card session">
+        <p class="session-label">PARTIDAS DE HOJE</p>
+        <p class="session-count" id="session-count">0 / 3</p>
+        <p class="session-text" id="session-text">Você ainda pode jogar 3 partidas hoje.</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- Scripts -->
+  <script src="js/core/observable.js"></script>
+
+  <script src="js/models/product.js"></script>
+  <script src="js/models/cartItem.js"></script>
+  <script src="js/models/arcadeStats.js"></script>
+  <script src="js/models/cosmoGame.js"></script>
+
+  <script src="js/services/api.js"></script>
+
+  <script src="js/viewmodels/cartViewModel.js"></script>
+  <script src="js/viewmodels/gameViewModel.js"></script>
+
+  <script src="js/views/cartView.js"></script>
+  <script src="js/views/gameView.js"></script>
+
+  <script src="js/events/domEvents.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Central de Notificações</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Proteção da tela -->
+  <script>
+    if (!localStorage.getItem('authToken') || !localStorage.getItem('authEmail')) {
+      window.location.href = 'index.html';
+    }
+  </script>
+</head>
+<body class="catalog-body">
+
+  <!-- Barra de navegação superior (compartilhada) -->
+  <header class="top-nav">
+    <div class="nav-left">
+      <div class="logo-badge">
+        <img src="assets/icons/cart-logo.svg" alt="" class="icon-16">
+        <span>[LOGO]</span>
+      </div>
+      <nav class="nav-links">
+        <a href="catalogo.html" class="nav-link">Home</a>
+        <a href="compras.html" class="nav-link">Compras</a>
+        <a href="jogos.html" class="nav-link">Jogos</a>
+      </nav>
+    </div>
+
+    <div class="nav-search">
+      <img src="assets/icons/search.svg" alt="" class="icon-16">
+      <input type="text" id="search-input" placeholder="Buscar produtos, marcas...">
+    </div>
+
+    <div class="nav-right">
+      <button class="nav-icon-btn" id="btn-notif" aria-label="Notificações">
+        <img src="assets/icons/bell.svg" alt="" class="icon-32">
+      </button>
+      <button class="nav-icon-btn cart-trigger" id="btn-cart" aria-label="Carrinho">
+        <img src="assets/icons/bag.svg" alt="" class="icon-20">
+        <span class="cart-badge" id="cart-count">0</span>
+      </button>
+      <div class="user-menu" id="user-menu">
+        <div class="user-avatar" id="user-initials">JD</div>
+        <span class="user-name" id="user-name">Usuário</span>
+        <img src="assets/icons/chevron-down.svg" alt="" class="icon-12">
+        <div class="user-dropdown hidden" id="user-dropdown">
+          <a href="perfil.html" class="dropdown-item dropdown-link">Meu perfil</a>
+          <button class="dropdown-item" id="btn-logout">Sair</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Corpo -->
+  <main class="notif-body">
+    <div class="inbox-container">
+      <div class="inbox-header">
+        <div class="inbox-title-wrap">
+          <h1 class="inbox-title">Notificações</h1>
+          <span class="notif-count-badge hidden" id="notif-badge">0 novas</span>
+        </div>
+        <a href="#" class="mark-all-link" id="mark-all-read">Marcar todas como lidas</a>
+      </div>
+
+      <div class="notif-card" id="notif-list">
+        <!-- Notificações injetadas pela NotificationView -->
+      </div>
+    </div>
+  </main>
+
+  <!-- Scripts -->
+  <script src="js/core/observable.js"></script>
+
+  <script src="js/models/product.js"></script>
+  <script src="js/models/cartItem.js"></script>
+  <script src="js/models/notification.js"></script>
+
+  <script src="js/services/api.js"></script>
+
+  <script src="js/viewmodels/cartViewModel.js"></script>
+  <script src="js/viewmodels/notificationViewModel.js"></script>
+
+  <script src="js/views/cartView.js"></script>
+  <script src="js/views/notificationView.js"></script>
+
+  <script src="js/events/domEvents.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

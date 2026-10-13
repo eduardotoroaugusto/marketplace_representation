@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login / Cadastro</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <!-- Fonte Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    // Quem já tem sessão ativa não precisa ver o login de novo
+    if (localStorage.getItem('authToken') && localStorage.getItem('authEmail')) {
+      window.location.href = 'catalogo.html';
+    }
+  </script>
+</head>
+<body class="auth-body">
+
+  <main class="auth-card">
+    <!-- Cabeçalho / logo -->
+    <header class="auth-header">
+      <div class="auth-logo-badge">
+        <img src="assets/icons/cart.svg" alt="" class="icon-24">
+      </div>
+      <h1 class="auth-logo-text">[LOGO DO APP]</h1>
+      <p class="auth-subtitle">Acesse sua conta ou cadastre-se para comprar</p>
+    </header>
+
+    <!-- Abas Entrar / Criar conta -->
+    <div class="auth-tabs" role="tablist">
+      <button type="button" id="tab-login" class="auth-tab active" role="tab">Entrar</button>
+      <button type="button" id="tab-register" class="auth-tab" role="tab">Criar conta</button>
+    </div>
+
+    <!-- Feedback geral (erros de API / sucesso) -->
+    <div id="auth-feedback" class="feedback-message hidden"></div>
+
+    <!-- Formulário de Login -->
+    <form id="login-form" class="auth-form">
+      <div class="field">
+        <label for="email">Endereço de e-mail</label>
+        <div class="input-wrap">
+          <input type="email" id="email" name="email" data-field="email"
+                 placeholder="Digite seu e-mail" autocomplete="email" required>
+        </div>
+        <p class="field-error hidden" data-error-for="email"></p>
+      </div>
+
+      <div class="field">
+        <label for="password">Senha</label>
+        <div class="input-wrap">
+          <input type="password" id="password" name="password" data-field="password"
+                 placeholder="Digite sua senha" autocomplete="current-password" required>
+          <button type="button" class="toggle-password" aria-label="Mostrar senha">
+            <img src="assets/icons/eye-off.svg" alt="" class="icon-16">
+          </button>
+        </div>
+        <p class="field-error hidden" data-error-for="password"></p>
+      </div>
+
+      <button type="submit" id="btn-login-submit" class="btn-primary">Entrar</button>
+
+      <div class="divider"><span>ou</span></div>
+
+      <button type="button" class="btn-google">
+        <img src="assets/icons/google.svg" alt="" class="icon-16">
+        Entrar com Google
+      </button>
+    </form>
+
+    <!-- Formulário de Cadastro -->
+    <form id="register-form" class="auth-form hidden">
+      <div class="field">
+        <label for="reg-name">Nome Completo</label>
+        <div class="input-wrap">
+          <input type="text" id="reg-name" name="reg-name" data-field="name"
+                 placeholder="Digite seu nome completo" autocomplete="name" required>
+        </div>
+        <p class="field-error hidden" data-error-for="name"></p>
+      </div>
+
+      <div class="field">
+        <label for="reg-email">Coloque o seu melhor email</label>
+        <div class="input-wrap">
+          <input type="email" id="reg-email" name="reg-email" data-field="email"
+                 placeholder="Digite seu e-mail" autocomplete="email" required>
+        </div>
+        <p class="field-error hidden" data-error-for="email"></p>
+      </div>
+
+      <div class="field">
+        <label for="reg-password">Senha</label>
+        <div class="input-wrap">
+          <input type="password" id="reg-password" name="reg-password" data-field="password"
+                 placeholder="Digite sua senha (mín. 8 caracteres)" autocomplete="new-password" required>
+          <button type="button" class="toggle-password" aria-label="Mostrar senha">
+            <img src="assets/icons/eye-off.svg" alt="" class="icon-16">
+          </button>
+        </div>
+        <p class="field-error hidden" data-error-for="password"></p>
+      </div>
+
+      <div class="field">
+        <label for="reg-confirm-password">Confirmar Senha</label>
+        <div class="input-wrap">
+          <input type="password" id="reg-confirm-password" name="reg-confirm-password" data-field="confirmPassword"
+                 placeholder="Digite sua senha novamente" autocomplete="new-password" required>
+          <button type="button" class="toggle-password" aria-label="Mostrar senha">
+            <img src="assets/icons/eye-off.svg" alt="" class="icon-16">
+          </button>
+        </div>
+        <p class="field-error hidden" data-error-for="confirmPassword"></p>
+      </div>
+
+      <button type="submit" id="btn-register-submit" class="btn-primary">Criar Conta</button>
+
+      <div class="divider"><span>ou</span></div>
+
+      <button type="button" class="btn-google">
+        <img src="assets/icons/google.svg" alt="" class="icon-16">
+        Cadastrar com Google
+      </button>
+    </form>
+  </main>
+
+  <!-- Scripts modulares (core -> services -> viewmodels -> views -> events -> main) -->
+  <script src="js/core/observable.js"></script>
+  <script src="js/services/api.js"></script>
+  <script src="js/viewmodels/authViewModel.js"></script>
+  <script src="js/views/loginView.js"></script>
+  <script src="js/events/domEvents.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

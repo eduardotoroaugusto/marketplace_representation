@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Compras - Carrinho</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Proteção da tela -->
+  <script>
+    if (!localStorage.getItem('authToken') || !localStorage.getItem('authEmail')) {
+      window.location.href = 'index.html';
+    }
+  </script>
+</head>
+<body class="catalog-body">
+
+  <!-- Barra de navegação superior (compartilhada) -->
+  <header class="top-nav">
+    <div class="nav-left">
+      <div class="logo-badge">
+        <img src="assets/icons/cart-logo.svg" alt="" class="icon-16">
+        <span>[LOGO]</span>
+      </div>
+      <nav class="nav-links">
+        <a href="catalogo.html" class="nav-link">Home</a>
+        <a href="compras.html" class="nav-link active">Compras</a>
+        <a href="jogos.html" class="nav-link">Jogos</a>
+      </nav>
+    </div>
+
+    <div class="nav-search">
+      <img src="assets/icons/search.svg" alt="" class="icon-16">
+      <input type="text" id="search-input" placeholder="Buscar produtos, marcas...">
+    </div>
+
+    <div class="nav-right">
+      <button class="nav-icon-btn" id="btn-notif" aria-label="Notificações">
+        <img src="assets/icons/bell.svg" alt="" class="icon-32">
+      </button>
+      <button class="nav-icon-btn cart-trigger" id="btn-cart" aria-label="Carrinho">
+        <img src="assets/icons/bag.svg" alt="" class="icon-20">
+        <span class="cart-badge" id="cart-count">0</span>
+      </button>
+      <div class="user-menu" id="user-menu">
+        <div class="user-avatar" id="user-initials">JD</div>
+        <span class="user-name" id="user-name">Usuário</span>
+        <img src="assets/icons/chevron-down.svg" alt="" class="icon-12">
+        <div class="user-dropdown hidden" id="user-dropdown">
+          <a href="perfil.html" class="dropdown-item dropdown-link">Meu perfil</a>
+          <button class="dropdown-item" id="btn-logout">Sair</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Abas -->
+  <div class="compras-tabs">
+    <button class="compras-tab active">Carrinho atual (<span id="cart-tab-count">0</span> itens)</button>
+    <button class="compras-tab">Histórico de pedidos</button>
+  </div>
+
+  <!-- Corpo -->
+  <main class="compras-body">
+    <!-- Coluna esquerda: itens + cupom -->
+    <div class="cart-left">
+      <div id="cart-feedback" class="feedback-message hidden"></div>
+
+      <div class="items-card" id="cart-items-list">
+        <!-- Linhas de item injetadas pela CartPageView -->
+      </div>
+
+      <div class="coupon-row">
+        <input type="text" id="coupon-input" class="coupon-input" placeholder="Código do cupom (Ex: PROMO10)">
+        <button type="button" id="btn-apply-coupon" class="btn-secondary">Aplicar</button>
+      </div>
+      <p id="coupon-feedback" class="coupon-feedback hidden"></p>
+
+      <div class="points-row">
+        <p class="points-info">Saldo Cosmo Arcade: <strong id="cart-points">0 pts</strong></p>
+        <button type="button" id="btn-redeem-points" class="btn-secondary">Usar pontos</button>
+      </div>
+      <p id="points-feedback" class="coupon-feedback hidden"></p>
+    </div>
+
+    <!-- Coluna direita: resumo -->
+    <aside class="summary-right">
+      <h2 class="summary-title">Resumo do Pedido</h2>
+
+      <div class="summary-lines">
+        <div class="summary-line">
+          <span>Subtotal (<span id="summary-count">0</span> itens)</span>
+          <strong id="summary-subtotal">R$ 0,00</strong>
+        </div>
+        <div class="summary-line">
+          <span>Desconto</span>
+          <strong id="summary-discount">- R$ 0,00</strong>
+        </div>
+        <div class="summary-line">
+          <span>Frete</span>
+          <strong>[A calcular]</strong>
+        </div>
+        <hr class="summary-divider">
+        <div class="summary-line total">
+          <span>Total estimado</span>
+          <strong id="summary-total">R$ 0,00</strong>
+        </div>
+      </div>
+
+      <hr class="summary-divider">
+
+      <div class="summary-section">
+        <p class="summary-label">Entrega</p>
+        <div class="summary-delivery">
+          <img src="assets/icons/map-pin.svg" alt="" class="icon-16">
+          <span id="delivery-address">Av. Paulista, 1000 - São Paulo, SP</span>
+        </div>
+      </div>
+
+      <div class="summary-section">
+        <p class="summary-label">Método de pagamento</p>
+        <div class="payment-select">
+          <img src="assets/icons/credit-card.svg" alt="" class="icon-16">
+          <span class="payment-text">Cartão de Crédito</span>
+          <img src="assets/icons/chevron-down.svg" alt="" class="icon-12">
+        </div>
+      </div>
+
+      <button type="button" class="btn-primary" id="btn-checkout">Finalizar compra</button>
+    </aside>
+  </main>
+
+  <!-- Scripts -->
+  <script src="js/core/observable.js"></script>
+
+  <script src="js/models/product.js"></script>
+  <script src="js/models/cartItem.js"></script>
+  <script src="js/models/arcadeStats.js"></script>
+
+  <script src="js/services/api.js"></script>
+
+  <script src="js/viewmodels/cartViewModel.js"></script>
+
+  <script src="js/views/cartView.js"></script>
+  <script src="js/views/cartPageView.js"></script>
+
+  <script src="js/events/domEvents.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

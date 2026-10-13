@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Perfil do Usuário</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Proteção da tela -->
+  <script>
+    if (!localStorage.getItem('authToken') || !localStorage.getItem('authEmail')) {
+      window.location.href = 'index.html';
+    }
+  </script>
+</head>
+<body class="catalog-body">
+
+  <!-- Barra de navegação superior (compartilhada com a Home) -->
+  <header class="top-nav">
+    <div class="nav-left">
+      <div class="logo-badge">
+        <img src="assets/icons/cart-logo.svg" alt="" class="icon-16">
+        <span>[LOGO]</span>
+      </div>
+      <nav class="nav-links">
+        <a href="catalogo.html" class="nav-link">Home</a>
+        <a href="compras.html" class="nav-link">Compras</a>
+        <a href="jogos.html" class="nav-link">Jogos</a>
+      </nav>
+    </div>
+
+    <div class="nav-search">
+      <img src="assets/icons/search.svg" alt="" class="icon-16">
+      <input type="text" id="search-input" placeholder="Buscar produtos, marcas...">
+    </div>
+
+    <div class="nav-right">
+      <button class="nav-icon-btn" id="btn-notif" aria-label="Notificações">
+        <img src="assets/icons/bell.svg" alt="" class="icon-32">
+      </button>
+
+      <button class="nav-icon-btn cart-trigger" id="btn-cart" aria-label="Carrinho">
+        <img src="assets/icons/bag.svg" alt="" class="icon-20">
+        <span class="cart-badge" id="cart-count">0</span>
+      </button>
+
+      <div class="user-menu" id="user-menu">
+        <div class="user-avatar" id="user-initials">JD</div>
+        <span class="user-name" id="user-name">Usuário</span>
+        <img src="assets/icons/chevron-down.svg" alt="" class="icon-12">
+        <div class="user-dropdown hidden" id="user-dropdown">
+          <a href="perfil.html" class="dropdown-item dropdown-link">Meu perfil</a>
+          <button class="dropdown-item" id="btn-logout">Sair</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Corpo do perfil -->
+  <main class="profile-body">
+    <!-- Menu lateral -->
+    <aside class="sidebar-menu" id="sidebar-menu">
+      <button class="menu-item active" data-section="dados">
+        <img src="assets/icons/user.svg" alt="" class="icon-16">
+        <span>Dados pessoais</span>
+      </button>
+      <button class="menu-item" data-section="enderecos">
+        <img src="assets/icons/map-pin.svg" alt="" class="icon-16">
+        <span>Endereços</span>
+      </button>
+      <button class="menu-item" data-section="seguranca">
+        <img src="assets/icons/lock.svg" alt="" class="icon-16">
+        <span>Segurança</span>
+      </button>
+      <button class="menu-item" data-section="pedidos">
+        <img src="assets/icons/package.svg" alt="" class="icon-16">
+        <span>Histórico de pedidos</span>
+      </button>
+    </aside>
+
+    <!-- Conteúdo -->
+    <section class="profile-content">
+      <h1 class="profile-title">Dados Pessoais</h1>
+
+      <div id="profile-feedback" class="feedback-message hidden"></div>
+
+      <div class="avatar-row">
+        <div class="profile-avatar">
+          <img src="assets/icons/user.svg" alt="" class="icon-24">
+        </div>
+        <div class="avatar-text">
+          <span class="avatar-caption">[FOTO DO PERFIL]</span>
+          <a href="#" class="avatar-link" id="btn-change-photo">Alterar foto de perfil</a>
+        </div>
+      </div>
+
+      <form id="profile-form" class="profile-form">
+        <div class="profile-row">
+          <div class="field">
+            <label for="pf-name">Nome Completo</label>
+            <div class="input-wrap">
+              <input type="text" id="pf-name" data-field="name" autocomplete="name">
+            </div>
+            <p class="field-error hidden" data-error-for="name"></p>
+          </div>
+          <div class="field">
+            <label for="pf-email">E-mail (Google Account)</label>
+            <div class="input-wrap">
+              <input type="email" id="pf-email" data-field="email" readonly>
+              <img src="assets/icons/lock.svg" alt="" class="icon-16">
+            </div>
+          </div>
+        </div>
+
+        <div class="profile-row">
+          <div class="field">
+            <label for="pf-phone">Telefone</label>
+            <div class="input-wrap">
+              <input type="text" id="pf-phone" data-field="phone" autocomplete="tel">
+            </div>
+            <p class="field-error hidden" data-error-for="phone"></p>
+          </div>
+          <div class="field">
+            <label for="pf-cpf">CPF</label>
+            <div class="input-wrap">
+              <input type="text" id="pf-cpf" data-field="cpf">
+            </div>
+            <p class="field-error hidden" data-error-for="cpf"></p>
+          </div>
+        </div>
+
+        <div class="profile-row">
+          <div class="field">
+            <label for="pf-cep">CEP</label>
+            <div class="input-wrap">
+              <input type="text" id="pf-cep" data-field="cep" autocomplete="postal-code">
+            </div>
+            <p class="field-error hidden" data-error-for="cep"></p>
+          </div>
+          <div class="field">
+            <label for="pf-address">Logradouro</label>
+            <div class="input-wrap">
+              <input type="text" id="pf-address" data-field="address" autocomplete="street-address">
+            </div>
+            <p class="field-error hidden" data-error-for="address"></p>
+          </div>
+        </div>
+
+        <div class="profile-actions">
+          <button type="button" class="btn-secondary" id="btn-logout-account">Sair da Conta</button>
+          <button type="submit" class="btn-primary" id="btn-save-profile">Salvar alterações</button>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <!-- Scripts (core -> models -> services -> viewmodels -> views -> events -> main) -->
+  <script src="js/core/observable.js"></script>
+
+  <script src="js/models/userProfile.js"></script>
+  <script src="js/models/product.js"></script>
+  <script src="js/models/cartItem.js"></script>
+
+  <script src="js/services/api.js"></script>
+
+  <script src="js/viewmodels/cartViewModel.js"></script>
+  <script src="js/viewmodels/profileViewModel.js"></script>
+
+  <script src="js/views/cartView.js"></script>
+  <script src="js/views/profileView.js"></script>
+
+  <script src="js/events/domEvents.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
