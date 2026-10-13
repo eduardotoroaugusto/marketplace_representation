@@ -10,7 +10,9 @@ function setupDomEvents() {
   setupGameEvents();
 }
 
-function doLogout() {
+async function doLogout() {
+  // Invalida o token no servidor (se falhar, a sessão local é limpa do mesmo jeito)
+  await ApiService.logout();
   // O carrinho sai antes do authEmail, que é usado para montar a chave dele
   localStorage.removeItem(userKey('cart'));
   localStorage.removeItem('authToken');

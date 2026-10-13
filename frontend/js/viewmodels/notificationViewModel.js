@@ -25,30 +25,38 @@ class NotificationViewModel {
     }
   }
 
-  markRead(id) {
-    const notifications = this.state.value.notifications.map(n =>
+  // As ações atualizam a tela na hora (otimista) e confirmam no servidor;
+  // se o servidor recusar, a lista é recarregada para voltar ao estado real.
+  async markRead(id) {
+    const target = this.state.value.notifications.find(n => n.id === id);
+    if (!target || target.read) return;
+    this._update(this.state.value.notifications.map(n =>
       n.id === id ? new Notification({ ...n, read: true }) : n
-    );
-    this._update(notifications);
+    ));
+    this._confirm(await ApiService.markNotificationRead(id));
   }
 
-  markAllRead() {
-    const notifications = this.state.value.notifications.map(n =>
-      new Notification({ ...n, read: true })
-    );
-    this._update(notifications);
+  async markAllRead() {
+    this._update(this.state.value.notifications.map(n => new Notification({ ...n, read: true })));
+    this._confirm(await ApiService.markAllNotificationsRead());
   }
 
-  remove(id) {
-    const notifications = this.state.value.notifications.filter(n => n.id !== id);
-    this._update(notifications);
+  async remove(id) {
+    this._update(this.state.value.notifications.filter(n => n.id !== id));
+    this._confirm(await ApiService.deleteNotification(id));
   }
 
-  // Atualiza o estado, recalcula o total de não-lidas e persiste
+  // Atualiza o estado e recalcula o total de não-lidas
   _update(notifications) {
     const unreadCount = notifications.filter(n => !n.read).length;
     this.state.value = { ...this.state.value, isLoading: false, notifications, unreadCount, error: null };
-    ApiService.saveNotifications(notifications);
+  }
+
+  _confirm(res) {
+    if (!res.ok) {
+      this.state.value = { ...this.state.value, error: res.error };
+      this.loadNotifications();
+    }
   }
 }
 

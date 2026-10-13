@@ -47,8 +47,8 @@ document.addEventListener('DOMContentLoaded', () => {
     cartView.init();
 
     fillUserHeader();
-    fillDeliveryAddress();
     cartViewModel.loadPoints();
+    cartViewModel.loadDeliveryAddress();
   }
 
   // 5. Central de NOTIFICAÇÕES
@@ -80,16 +80,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // 7. Escutadores de eventos do DOM
   setupDomEvents();
 });
-
-// Preenche o endereço de entrega com o logradouro salvo no perfil (se houver)
-function fillDeliveryAddress() {
-  const el = document.getElementById('delivery-address');
-  if (!el) return;
-  const perfil = JSON.parse(localStorage.getItem(userKey('userProfile')) || 'null');
-  if (perfil && perfil.address) {
-    el.textContent = `${perfil.address} - São Paulo, SP`;
-  }
-}
 
 // Contador de notificações não lidas no sino do cabeçalho mobile
 async function fillNotifBadge() {

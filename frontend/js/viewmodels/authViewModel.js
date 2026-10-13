@@ -88,7 +88,7 @@ class AuthViewModel {
       if (res.ok) {
         localStorage.setItem('authToken', res.token);
         localStorage.setItem('authUser', res.name || '');
-        localStorage.setItem('authEmail', email);
+        localStorage.setItem('authEmail', res.email); // e-mail como o servidor guardou (minúsculas)
         this.state.value = { ...this.state.value, isLoading: false, feedback: { type: 'success', text: 'Login realizado!' } };
         window.location.href = 'catalogo.html';
       } else {

@@ -1,0 +1,757 @@
+openapi: 3.0.3
+info:
+  title: Marketplace — API do Carrinho de Compras Interativo
+  version: 1.0.0
+  description: |
+    API REST do projeto **Carrinho de Compras Interativo** (Programação em Ambiente Visual),
+    escrita em **Dart + Shelf** com arquitetura **MVVM** (Model → ViewModel → View).
+
+    ## Como usar este Swagger
+    1. Crie uma conta em `POST /auth/register` e faça login em `POST /auth/login`.
+    2. Copie o `token` da resposta, clique em **Authorize** (cadeado) e cole o token.
+    3. As rotas com cadeado passam a funcionar com **Try it out**.
+
+    ## Convenções
+    - **Dinheiro:** valores em reais como número (`2499.9` = R$ 2.499,90). Internamente o
+      servidor calcula em centavos inteiros, sem erro de arredondamento.
+    - **Preços nunca vêm do cliente:** o carrinho envia só `productId` e `qty`; o preço é
+      lido do catálogo no servidor.
+    - **Erros:** sempre no formato `{ "error": "mensagem", "code": "codigo_estavel", "details": ... }`.
+      Use `code` para tratar o erro no frontend; `error` é o texto para exibir.
+    - **Autorização por dono:** o usuário é identificado pelo token, nunca por um id no corpo.
+      Recurso de outro usuário responde **404** (igual a inexistente).
+    - **Persistência:** em memória — os dados voltam ao estado inicial quando o servidor reinicia.
+  contact:
+    name: Grupo do projeto (Opção D)
+servers:
+  - url: http://localhost:8081
+    description: Servidor local (dart run bin/server.dart)
+tags:
+  - name: Autenticação
+    description: Cadastro, login (token Bearer opaco) e logout.
+  - name: Catálogo
+    description: Produtos exibidos na Home.
+  - name: Carrinho
+    description: Validação de estoque e de cupons antes da finalização.
+  - name: Pedidos
+    description: Finalização de compra e histórico.
+  - name: Perfil
+    description: Dados pessoais do usuário autenticado.
+  - name: Notificações
+    description: Central de notificações do usuário.
+  - name: Cosmo Arcade
+    description: Minijogo cujos pontos viram desconto no carrinho (limite de 3 partidas por dia).
+  - name: Infra
+    description: Saúde do servidor e documentação.
+
+paths:
+  /health:
+    get:
+      tags: [Infra]
+      summary: Verifica se o servidor está no ar
+      operationId: health
+      responses:
+        '200':
+          description: Servidor no ar
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: ok }
+
+  /auth/register:
+    post:
+      tags: [Autenticação]
+      summary: Cria uma conta
+      description: |
+        Valida os campos no servidor (as mesmas regras do formulário do frontend), guarda a senha
+        com **bcrypt** e cria as notificações de boas-vindas e o saldo inicial de 250 pontos do
+        Cosmo Arcade. O e-mail é normalizado (minúsculas, sem espaços). Não faz login: depois do
+        cadastro, chame `POST /auth/login`.
+      operationId: register
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RegisterRequest' }
+      responses:
+        '201':
+          description: Conta criada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/User' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '409':
+          description: E-mail já cadastrado (`code` = `email_taken`)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+              example: { error: Este e-mail já está em uso., code: email_taken }
+        '422': { $ref: '#/components/responses/ValidationError' }
+
+  /auth/login:
+    post:
+      tags: [Autenticação]
+      summary: Faz login e devolve o token
+      description: |
+        Devolve um **token opaco** (sequência aleatória, sem dados dentro) para enviar no
+        cabeçalho `Authorization: Bearer <token>`. E-mail inexistente e senha errada têm a mesma
+        resposta, para não revelar quais e-mails estão cadastrados.
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LoginRequest' }
+      responses:
+        '200':
+          description: Login realizado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Session' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401':
+          description: Credenciais inválidas (`code` = `invalid_credentials`)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /auth/logout:
+    post:
+      tags: [Autenticação]
+      summary: Encerra a sessão (invalida o token)
+      operationId: logout
+      security: [{ bearerAuth: [] }]
+      responses:
+        '204': { description: Sessão encerrada }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /auth/me:
+    get:
+      tags: [Autenticação]
+      summary: Dados do usuário do token
+      operationId: me
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Usuário autenticado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/User' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /products:
+    get:
+      tags: [Catálogo]
+      summary: Lista os produtos
+      description: Busca por nome, filtro por categoria e ordenação — os controles da Home.
+      operationId: listProducts
+      parameters:
+        - name: search
+          in: query
+          description: Trecho do nome (sem diferenciar maiúsculas)
+          schema: { type: string, example: smart }
+        - name: category
+          in: query
+          description: Categoria exata; `Todos` ou vazio não filtra
+          schema:
+            type: string
+            enum: [Todos, Eletrônicos, Roupas, Casa, Esportes, Livros]
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum: [relevance, price-asc, price-desc]
+            default: relevance
+      responses:
+        '200':
+          description: Lista de produtos
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Product' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '500': { $ref: '#/components/responses/InternalError' }
+
+  /products/{id}:
+    get:
+      tags: [Catálogo]
+      summary: Detalhe de um produto
+      operationId: getProduct
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Produto
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Product' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /cart/validate:
+    post:
+      tags: [Carrinho]
+      summary: Confere se todos os itens existem e têm estoque
+      description: |
+        Itens repetidos do mesmo produto são somados antes da conferência. Não reserva estoque:
+        a conferência é refeita em `POST /orders`.
+      operationId: validateCart
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CartRequest' }
+      responses:
+        '200':
+          description: Todos os itens disponíveis
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CartValidation' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '409':
+          description: Algum item indisponível (`code` = `stock_unavailable`)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CartConflict' }
+
+  /coupons/validate:
+    post:
+      tags: [Carrinho]
+      summary: Confere um cupom de desconto
+      description: Cupons ativos — `PROMO10` (10%) e `WIRE15` (15%). Maiúsculas/minúsculas não importam.
+      operationId: validateCoupon
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [code]
+              properties:
+                code: { type: string, example: promo10 }
+      responses:
+        '200':
+          description: Cupom válido
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code: { type: string, example: PROMO10 }
+                  percent: { type: integer, example: 10 }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404':
+          description: Cupom inválido
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+              example: { error: Cupom inválido., code: not_found }
+
+  /orders:
+    post:
+      tags: [Pedidos]
+      summary: Finaliza a compra
+      description: |
+        Confere o estoque **de novo** (pode ter acabado depois da validação do carrinho), calcula
+        os valores no servidor, baixa o estoque, debita os pontos usados, grava o pedido e cria a
+        notificação "Pedido #id confirmado". Se algo falhar, nada é alterado.
+
+        **Desconto:** cupom (percentual sobre o subtotal) + pontos do Cosmo Arcade (maior faixa que
+        o saldo permite: 100 pts = R$ 2, 250 pts = R$ 5, 500 pts = R$ 10). O desconto total nunca
+        passa do subtotal. Não há gateway de pagamento: o pedido já nasce `confirmed`.
+      operationId: createOrder
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/OrderRequest' }
+      responses:
+        '201':
+          description: Pedido criado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  orderId: { type: integer, example: 1001 }
+                  order: { $ref: '#/components/schemas/Order' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '409':
+          description: Estoque insuficiente no momento da finalização
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/StockConflict' }
+        '422':
+          description: |
+            Cupom inválido (`invalid_coupon`), pontos insuficientes (`insufficient_points`) ou
+            endereço de entrega ausente (`validation_error`).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+    get:
+      tags: [Pedidos]
+      summary: Histórico de pedidos do usuário
+      description: Do mais recente para o mais antigo.
+      operationId: listOrders
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Pedidos
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Order' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /orders/{id}:
+    get:
+      tags: [Pedidos]
+      summary: Detalhe e status de um pedido
+      description: Pedido de outro usuário responde 404, igual a um inexistente.
+      operationId: getOrder
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Pedido
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Order' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /profile:
+    get:
+      tags: [Perfil]
+      summary: Dados pessoais
+      operationId: getProfile
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Perfil
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Profile' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+    put:
+      tags: [Perfil]
+      summary: Atualiza os dados pessoais
+      description: |
+        Todos os campos são obrigatórios e validados no servidor. O e-mail é da conta e **não muda**
+        por aqui — se for enviado, é ignorado.
+      operationId: updateProfile
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ProfileUpdate' }
+      responses:
+        '200':
+          description: Perfil atualizado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Profile' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+
+  /notifications:
+    get:
+      tags: [Notificações]
+      summary: Lista as notificações e o total de não lidas
+      operationId: listNotifications
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Notificações (mais recentes primeiro)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/NotificationList' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /notifications/read-all:
+    post:
+      tags: [Notificações]
+      summary: Marca todas como lidas
+      operationId: markAllNotificationsRead
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Lista atualizada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/NotificationList' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /notifications/{id}/read:
+    patch:
+      tags: [Notificações]
+      summary: Marca uma notificação como lida
+      operationId: markNotificationRead
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Notificação atualizada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Notification' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /notifications/{id}:
+    delete:
+      tags: [Notificações]
+      summary: Remove uma notificação
+      operationId: deleteNotification
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '204': { description: Removida }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /arcade/stats:
+    get:
+      tags: [Cosmo Arcade]
+      summary: Saldo de pontos, recorde e partidas do dia
+      operationId: arcadeStats
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Estado do arcade
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ArcadeStats' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /arcade/plays:
+    post:
+      tags: [Cosmo Arcade]
+      summary: Inicia uma partida
+      description: |
+        A partida **conta no limite do dia assim que começa** (recarregar a página não devolve a
+        tentativa). Iniciar outra sem finalizar a anterior abandona a anterior. A contagem zera à
+        meia-noite (horário do servidor).
+      operationId: startPlay
+      security: [{ bearerAuth: [] }]
+      responses:
+        '201':
+          description: Partida iniciada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  playId: { type: integer, example: 1 }
+                  stats: { $ref: '#/components/schemas/ArcadeStats' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '409':
+          description: Limite diário atingido (`code` = `daily_limit`)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+              example: { error: Você já usou as 3 partidas de hoje. Volte amanhã!, code: daily_limit }
+
+  /arcade/plays/{id}/finish:
+    post:
+      tags: [Cosmo Arcade]
+      summary: Registra a pontuação de uma partida
+      description: Soma `score` ao saldo e atualiza o recorde. Cada partida só pode ser finalizada uma vez.
+      operationId: finishPlay
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [score]
+              properties:
+                score: { type: integer, minimum: 0, maximum: 20000, example: 120 }
+      responses:
+        '200':
+          description: Pontos somados
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  earned: { type: integer, example: 120 }
+                  stats: { $ref: '#/components/schemas/ArcadeStats' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: Token opaco devolvido por `POST /auth/login`.
+
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      schema: { type: integer, example: 1 }
+
+  responses:
+    BadRequest:
+      description: Corpo ausente, malformado ou com tipos errados (`bad_request` / `invalid_json`)
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+          example: { error: O corpo da requisição não é um JSON válido., code: invalid_json }
+    Unauthorized:
+      description: Sem token (`unauthorized`) ou token inválido/encerrado (`invalid_token`)
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+          example: { error: Token inválido ou sessão encerrada., code: invalid_token }
+    NotFound:
+      description: Recurso inexistente (ou de outro usuário)
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+          example: { error: Produto não encontrado., code: not_found }
+    ValidationError:
+      description: Campos inválidos; `details` traz a mensagem de cada campo
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+          example:
+            error: Corrija os campos destacados.
+            code: validation_error
+            details: { phone: Telefone no formato (11) 98765-4321. }
+    InternalError:
+      description: Erro inesperado (detalhes só no log do servidor)
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+          example: { error: Erro interno do servidor., code: internal_error }
+
+  schemas:
+    Error:
+      type: object
+      required: [error, code]
+      properties:
+        error: { type: string, description: Mensagem para exibir ao usuário }
+        code: { type: string, description: Código estável para tratar no cliente }
+        details:
+          description: Informação extra (erros por campo ou itens indisponíveis)
+          oneOf:
+            - type: object
+              additionalProperties: { type: string }
+            - type: array
+              items: { $ref: '#/components/schemas/UnavailableItem' }
+
+    RegisterRequest:
+      type: object
+      required: [name, email, password]
+      properties:
+        name: { type: string, description: 'Nome e sobrenome, só letras', example: Ana Souza }
+        email: { type: string, format: email, example: ana@exemplo.com }
+        password: { type: string, minLength: 8, example: senhaForte1 }
+        confirmPassword: { type: string, description: Opcional; se enviado, precisa ser igual a password }
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email, example: ana@exemplo.com }
+        password: { type: string, example: senhaForte1 }
+
+    User:
+      type: object
+      properties:
+        id: { type: integer, example: 1 }
+        name: { type: string, example: Ana Souza }
+        firstName: { type: string, example: Ana }
+        email: { type: string, example: ana@exemplo.com }
+
+    Session:
+      type: object
+      properties:
+        token: { type: string, example: 3q2-7wX0cY... }
+        user: { $ref: '#/components/schemas/User' }
+
+    Product:
+      type: object
+      properties:
+        id: { type: integer, example: 1 }
+        name: { type: string, example: Smart TV 4K 55" }
+        price: { type: number, format: double, example: 2499.0 }
+        stock: { type: integer, example: 8 }
+        inStock: { type: boolean, example: true }
+        category: { type: string, example: Eletrônicos }
+        rating: { type: number, example: 4.0 }
+
+    CartItem:
+      type: object
+      required: [productId, qty]
+      properties:
+        productId: { type: integer, example: 3 }
+        qty: { type: integer, minimum: 1, example: 2, description: Também aceito como `quantity` }
+
+    CartRequest:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          minItems: 1
+          items: { $ref: '#/components/schemas/CartItem' }
+
+    PricedItem:
+      type: object
+      properties:
+        productId: { type: integer, example: 3 }
+        name: { type: string, example: Camiseta Algodão Básica }
+        unitPrice: { type: number, example: 59.9 }
+        qty: { type: integer, example: 2 }
+        subtotal: { type: number, example: 119.8 }
+
+    CartValidation:
+      type: object
+      properties:
+        ok: { type: boolean, example: true }
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/PricedItem' }
+        itemCount: { type: integer, example: 2 }
+        subtotal: { type: number, example: 119.8 }
+
+    UnavailableItem:
+      type: object
+      properties:
+        productId: { type: integer, example: 1 }
+        name: { type: string, nullable: true, example: Smart TV 4K 55" }
+        requested: { type: integer, example: 10 }
+        available: { type: integer, example: 8 }
+        reason: { type: string, enum: [not_found, insufficient_stock] }
+
+    CartConflict:
+      type: object
+      properties:
+        ok: { type: boolean, example: false }
+        error: { type: string, example: Alguns itens não estão disponíveis na quantidade pedida. }
+        code: { type: string, example: stock_unavailable }
+        indisponiveis:
+          type: array
+          items: { $ref: '#/components/schemas/UnavailableItem' }
+
+    StockConflict:
+      type: object
+      properties:
+        error: { type: string }
+        code: { type: string, example: stock_unavailable }
+        indisponiveis:
+          type: array
+          items: { $ref: '#/components/schemas/UnavailableItem' }
+
+    OrderRequest:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          minItems: 1
+          items: { $ref: '#/components/schemas/CartItem' }
+        couponCode: { type: string, nullable: true, example: PROMO10 }
+        usePoints: { type: boolean, default: false, description: Usa a maior faixa de pontos que o saldo permite }
+        paymentMethod:
+          type: string
+          enum: [credit_card, pix, boleto]
+          default: credit_card
+        deliveryAddress:
+          type: string
+          description: Se omitido, usa o logradouro do perfil; se os dois estiverem vazios, 422
+          example: Av. Paulista, 1000 - São Paulo, SP
+
+    Order:
+      type: object
+      properties:
+        id: { type: integer, example: 1001 }
+        status: { type: string, enum: [confirmed, shipped, delivered, cancelled] }
+        createdAt: { type: string, format: date-time }
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/PricedItem' }
+        itemCount: { type: integer, example: 3 }
+        couponCode: { type: string, nullable: true, example: PROMO10 }
+        pointsUsed: { type: integer, example: 250 }
+        subtotal: { type: number, example: 2618.8 }
+        couponDiscount: { type: number, example: 261.88 }
+        pointsDiscount: { type: number, example: 5.0 }
+        discount: { type: number, example: 266.88 }
+        total: { type: number, example: 2351.92 }
+        paymentMethod: { type: string, example: credit_card }
+        deliveryAddress: { type: string, example: 'Av. Paulista, 1000 - São Paulo, SP' }
+
+    Profile:
+      type: object
+      properties:
+        name: { type: string, example: Ana Souza }
+        email: { type: string, example: ana@exemplo.com, description: Somente leitura }
+        phone: { type: string, example: '(11) 98765-4321' }
+        cpf: { type: string, example: 123.456.789-00 }
+        cep: { type: string, example: '01311-200' }
+        address: { type: string, example: 'Av. Paulista, 1000' }
+
+    ProfileUpdate:
+      type: object
+      required: [name, phone, cpf, cep, address]
+      properties:
+        name: { type: string, description: 'Nome e sobrenome, só letras', example: Ana Souza }
+        phone: { type: string, pattern: '^\(\d{2}\)\s?\d{4,5}-\d{4}$', example: '(11) 98765-4321' }
+        cpf: { type: string, pattern: '^\d{3}\.\d{3}\.\d{3}-\d{2}$', example: 123.456.789-00 }
+        cep: { type: string, pattern: '^\d{5}-?\d{3}$', example: '01311-200' }
+        address: { type: string, example: 'Av. Paulista, 1000' }
+
+    Notification:
+      type: object
+      properties:
+        id: { type: integer, example: 3 }
+        icon: { type: string, enum: [package, alert-triangle, tag], description: Nome do ícone em assets/icons do frontend }
+        title: { type: string, example: 'Pedido #1001 confirmado!' }
+        createdAt: { type: string, format: date-time }
+        read: { type: boolean, example: false }
+
+    NotificationList:
+      type: object
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/Notification' }
+        unreadCount: { type: integer, example: 2 }
+
+    ArcadeStats:
+      type: object
+      properties:
+        points: { type: integer, example: 250 }
+        hiScore: { type: integer, example: 120 }
+        playsToday: { type: integer, example: 1 }
+        playsLeft: { type: integer, example: 2 }
+        maxPlaysPerDay: { type: integer, example: 3 }
+        openPlayId: { type: integer, nullable: true, description: Partida iniciada e ainda não finalizada }
+        conversion:
+          type: array
+          description: Tabela de conversão de pontos em desconto (R$)
+          items:
+            type: object
+            properties:
+              points: { type: integer, example: 250 }
+              discount: { type: number, example: 5.0 }

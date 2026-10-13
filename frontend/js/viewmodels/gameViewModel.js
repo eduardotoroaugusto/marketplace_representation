@@ -4,12 +4,14 @@
 class GameViewModel {
   constructor() {
     this.game = null;                                 // CosmoGame da partida atual
+    this.playId = null;                               // id da partida no servidor
     this.layout = GAME_LAYOUTS.desktop;               // tamanho do monitor (desktop/mobile)
     this.input = { left: false, right: false, fire: false };
     this.touchTargetX = null;                         // x do dedo no monitor (controle por toque)
 
     this.state = new Observable({
       isLoading: true,
+      isStarting: false,                              // aguardando o servidor iniciar a partida
       phase: 'idle',
       score: 0,
       lives: START_LIVES,
@@ -36,16 +38,23 @@ class GameViewModel {
     else if (phase === 'idle' || phase === 'over') this.startGame();
   }
 
-  startGame() {
-    const { stats } = this.state.value;
+  // O servidor registra a partida (POST /arcade/plays) e confere o limite diário
+  async startGame() {
+    const { stats, isStarting } = this.state.value;
+    if (isStarting) return;
     if (stats.playsLeft === 0) {
       this._patch({ error: 'Você já usou as 3 partidas de hoje. Volte amanhã!' });
       return;
     }
 
-    // A partida conta assim que começa (recarregar a página não devolve a tentativa)
-    const updated = new ArcadeStats({ ...stats, playsToday: stats.playsToday + 1 });
-    ApiService.saveArcadeStats(updated);
+    this._patch({ isStarting: true, error: null });
+    const res = await ApiService.startArcadePlay();
+    if (!res.ok) {
+      this._patch({ isStarting: false, error: res.error });
+      return;
+    }
+    this.playId = res.playId;
+    const updated = new ArcadeStats(res.stats);
 
     this.game = new CosmoGame(Math.random, this.layout);
     this.resetInput();
@@ -55,6 +64,7 @@ class GameViewModel {
       lives: this.game.lives,
       lastEarned: 0,
       stats: updated,
+      isStarting: false,
       error: null
     });
   }
@@ -71,9 +81,9 @@ class GameViewModel {
   }
 
   // Encerra a partida atual (os pontos feitos contam) e começa outra se houver tentativa
-  confirmRestart() {
+  async confirmRestart() {
     if (this.state.value.phase !== 'confirm') return;
-    this._finishGame();
+    await this._finishGame();
     if (this.state.value.stats.playsLeft > 0) this.startGame();
   }
 
@@ -127,18 +137,26 @@ class GameViewModel {
   }
 
   // ---------- Internos ----------
-  _finishGame() {
+  // Mostra o resultado na hora e registra a pontuação no servidor
+  // (POST /arcade/plays/{id}/finish), que devolve o saldo oficial
+  async _finishGame() {
     const { stats } = this.state.value;
     const earned = this.game ? this.game.score : 0;
-    const updated = new ArcadeStats({
+    const local = new ArcadeStats({
       ...stats,
       points: stats.points + earned,
       hiScore: Math.max(stats.hiScore, earned)
     });
-    ApiService.saveArcadeStats(updated);
 
     this.resetInput();
-    this._patch({ phase: 'over', score: earned, lastEarned: earned, stats: updated });
+    this._patch({ phase: 'over', score: earned, lastEarned: earned, stats: local });
+
+    const playId = this.playId;
+    this.playId = null;
+    if (playId === null) return;
+    const res = await ApiService.finishArcadePlay(playId, earned);
+    if (res.ok) this._patch({ stats: new ArcadeStats(res.stats) });
+    else this._patch({ error: res.error });
   }
 
   _patch(props) {

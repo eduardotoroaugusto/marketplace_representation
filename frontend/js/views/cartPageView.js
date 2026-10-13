@@ -14,6 +14,8 @@ class CartPageView {
     this.pointsEl = document.getElementById('cart-points');
     this.redeemBtnEl = document.getElementById('btn-redeem-points');
     this.pointsFeedbackEl = document.getElementById('points-feedback');
+    this.deliveryEl = document.getElementById('delivery-address');
+    this.checkoutBtnEl = document.getElementById('btn-checkout');
 
     // Listeners por linha, para removê-los antes de recriar o DOM (evita vazamento)
     this._rowListeners = [];
@@ -29,6 +31,20 @@ class CartPageView {
     this.renderCouponFeedback(state);
     this.renderPoints(state);
     this.renderCheckoutFeedback(state);
+    this.renderDelivery(state);
+  }
+
+  // Endereço de entrega (vem do Perfil) e estado do botão de finalizar
+  renderDelivery(state) {
+    if (this.deliveryEl) {
+      if (state.deliveryAddress === null) this.deliveryEl.textContent = 'Carregando endereço...';
+      else if (state.deliveryAddress) this.deliveryEl.textContent = state.deliveryAddress;
+      else this.deliveryEl.textContent = 'Nenhum endereço cadastrado — preencha no Perfil.';
+    }
+    if (this.checkoutBtnEl) {
+      this.checkoutBtnEl.disabled = state.isCheckingOut;
+      this.checkoutBtnEl.textContent = state.isCheckingOut ? 'Finalizando...' : 'Finalizar compra';
+    }
   }
 
   // ---------- Itens ----------

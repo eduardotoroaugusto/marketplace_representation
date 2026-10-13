@@ -1,8 +1,6 @@
 // js/viewmodels/cartViewModel.js
 
 const CART_STORAGE_KEY = 'cart';
-// código -> percentual de desconto (WIRE15 é o cupom anunciado nas notificações)
-const CUPONS = { 'PROMO10': 0.10, 'WIRE15': 0.15 };
 
 class CartViewModel {
   constructor() {
@@ -10,13 +8,16 @@ class CartViewModel {
     this.state = new Observable({
       items,
       couponCode: null,
+      couponPercent: 0,        // percentual do cupom validado pela API
       couponError: null,
       points: 0,               // saldo do Cosmo Arcade
       pointsRedeem: null,      // faixa resgatada: { points, value }
       pointsError: null,
       error: null,
       feedback: null,          // mensagem de checkout
-      ...this._totals(items, null, null)
+      deliveryAddress: null,   // logradouro do perfil (null = ainda carregando)
+      isCheckingOut: false,
+      ...this._totals(items, 0, null)
     });
 
     // Persiste automaticamente os itens a cada mudança de estado
@@ -74,17 +75,26 @@ class CartViewModel {
     this._recompute(items, { error: null });
   }
 
-  applyCoupon(code) {
-    const normalized = (code || '').trim().toUpperCase();
-    if (!normalized) {
-      this._recompute(this.state.value.items, { couponCode: null, couponError: 'Informe um código de cupom.' });
+  // Os cupons válidos ficam no servidor (POST /coupons/validate)
+  async applyCoupon(code) {
+    const typed = (code || '').trim();
+    if (!typed) {
+      this._recompute(this.state.value.items, { couponCode: null, couponPercent: 0, couponError: 'Informe um código de cupom.' });
       return;
     }
-    if (CUPONS[normalized]) {
-      this._recompute(this.state.value.items, { couponCode: normalized, couponError: null });
+    const res = await ApiService.validateCoupon(typed);
+    if (res.ok) {
+      this._recompute(this.state.value.items, { couponCode: res.data.code, couponPercent: res.data.percent, couponError: null });
     } else {
-      this._recompute(this.state.value.items, { couponCode: null, couponError: 'Cupom inválido.' });
+      this._recompute(this.state.value.items, { couponCode: null, couponPercent: 0, couponError: res.error });
     }
+  }
+
+  // Endereço de entrega = logradouro salvo no Perfil (GET /profile)
+  async loadDeliveryAddress() {
+    if (typeof ApiService === 'undefined') return;
+    const res = await ApiService.getProfile();
+    this._patch({ deliveryAddress: res.ok ? res.data.address : '' });
   }
 
   // Saldo de pontos ganho na tela de Jogos
@@ -108,33 +118,50 @@ class CartViewModel {
     this._recompute(this.state.value.items, { pointsRedeem: tier, pointsError: null });
   }
 
+  // POST /orders: o servidor confere o estoque de novo, calcula os valores,
+  // baixa o estoque e debita os pontos
   async checkout() {
-    if (this.state.value.items.length === 0) {
+    const { items, couponCode, pointsRedeem, deliveryAddress, isCheckingOut } = this.state.value;
+    if (isCheckingOut) return;
+    if (items.length === 0) {
       this._patch({ feedback: { type: 'error', text: 'Seu carrinho está vazio.' } });
       return;
     }
 
-    // Debita os pontos resgatados antes de confirmar o pedido
-    const { pointsRedeem } = this.state.value;
-    let points = this.state.value.points;
-    if (pointsRedeem) {
-      const res = await ApiService.spendPoints(pointsRedeem.points);
-      if (!res.ok) {
-        this._recompute(this.state.value.items, { pointsRedeem: null, pointsError: res.error });
-        return;
-      }
-      points = res.points;
+    this._patch({ isCheckingOut: true, feedback: null });
+    const res = await ApiService.createOrder({ items, couponCode, usePoints: Boolean(pointsRedeem), deliveryAddress });
+
+    if (!res.ok) {
+      this._patch({ isCheckingOut: false, feedback: { type: 'error', text: this._checkoutError(res) } });
+      return;
     }
 
-    // Sem backend: apenas simula o pedido, limpa o carrinho e confirma
+    const order = res.data.order;
     this._recompute([], {
+      isCheckingOut: false,
       couponCode: null,
+      couponPercent: 0,
       couponError: null,
-      points,
+      points: this.state.value.points - order.pointsUsed,
       pointsRedeem: null,
       pointsError: null,
-      feedback: { type: 'success', text: 'Compra finalizada com sucesso! (protótipo)' }
+      feedback: {
+        type: 'success',
+        text: `Pedido #${order.id} confirmado! Total pago: R$ ${order.total.toFixed(2).replace('.', ',')}.`
+      }
     });
+  }
+
+  // Mensagem de erro do checkout a partir da resposta da API
+  _checkoutError(res) {
+    if (res.code === 'stock_unavailable' && Array.isArray(res.details)) {
+      const nomes = res.details.map(i => `${i.name || 'Produto ' + i.productId} (disponível: ${i.available})`);
+      return `Estoque insuficiente: ${nomes.join(', ')}.`;
+    }
+    if (res.code === 'validation_error' && res.details && res.details.deliveryAddress) {
+      return 'Cadastre seu endereço de entrega no Perfil antes de finalizar.';
+    }
+    return res.error;
   }
 
   clearErrorAfter(ms) {
@@ -142,24 +169,28 @@ class CartViewModel {
   }
 
   // ---------- Cálculo e atualização de estado ----------
-  _totals(items, couponCode, pointsRedeem) {
-    const subtotal = items.reduce((sum, item) => sum + item.subtotal, 0);
-    const rate = couponCode && CUPONS[couponCode] ? CUPONS[couponCode] : 0;
-    const pointsValue = pointsRedeem ? pointsRedeem.value : 0;
-    const discount = Math.min(subtotal, subtotal * rate + pointsValue); // nunca passa do subtotal
-    const total = subtotal - discount;
+  // Prévia dos valores (em centavos para não acumular erro de arredondamento).
+  // O valor final é sempre o calculado pelo servidor em POST /orders.
+  _totals(items, couponPercent, pointsRedeem) {
+    const subtotalCents = Math.round(items.reduce((sum, item) => sum + item.subtotal, 0) * 100);
+    const couponCents = Math.round(subtotalCents * couponPercent / 100);
+    const pointsCents = pointsRedeem ? Math.round(pointsRedeem.value * 100) : 0;
+    const discountCents = Math.min(subtotalCents, couponCents + pointsCents); // nunca passa do subtotal
+    const subtotal = subtotalCents / 100;
+    const discount = discountCents / 100;
+    const total = (subtotalCents - discountCents) / 100;
     const count = items.reduce((sum, item) => sum + item.quantity, 0);
     return { subtotal, discount, total, count };
   }
 
   // Recalcula os totais mantendo cupom/pontos atuais (ou os novos passados em extra)
   _recompute(items, extra = {}) {
-    const couponCode = 'couponCode' in extra ? extra.couponCode : this.state.value.couponCode;
+    const couponPercent = 'couponPercent' in extra ? extra.couponPercent : this.state.value.couponPercent;
     const pointsRedeem = 'pointsRedeem' in extra ? extra.pointsRedeem : this.state.value.pointsRedeem;
     this.state.value = {
       ...this.state.value,
       items,
-      ...this._totals(items, couponCode, pointsRedeem),
+      ...this._totals(items, couponPercent, pointsRedeem),
       ...extra
     };
   }

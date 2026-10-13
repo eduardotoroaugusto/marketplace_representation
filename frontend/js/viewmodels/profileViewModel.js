@@ -92,7 +92,9 @@ class ProfileViewModel {
       if (res.ok) {
         this.state.value = { ...this.state.value, isSaving: false, feedback: { type: 'success', text: 'Alterações salvas com sucesso!' } };
       } else {
-        this.state.value = { ...this.state.value, isSaving: false, feedback: { type: 'error', text: 'Não foi possível salvar.' } };
+        // 422: o servidor devolve a mensagem de cada campo inválido em details
+        const fieldErrors = res.code === 'validation_error' && res.details ? res.details : {};
+        this.state.value = { ...this.state.value, isSaving: false, fieldErrors, feedback: { type: 'error', text: res.error } };
       }
     } catch (err) {
       this.state.value = { ...this.state.value, isSaving: false, feedback: { type: 'error', text: 'Falha de comunicação.' } };
